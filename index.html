@@ -1,0 +1,521 @@
+
+
+Lite
+I have completed the development of your professional portfolio admin panel.
+The solution consists of a clean, corporate-style frontend built with HTML, CSS, and Vanilla JavaScript, and a robust backend powered by a Cloudflare Worker that connects to your D1 Database.
+Key Features Delivered:
+Corporate Design: A professional interface using a deep navy and slate color palette, designed to impress recruiters.
+Section Management: Full CRUD (Create, Read, Update, Delete) support for Works, Experience, Study, Tech Stack, and Blogs.
+Tech Stack Categorization: Includes the specific categories you requested: Backend, Frontend, Database, Testing & Security, Cloud, and Tools.
+Advanced Blog Features:
+Categories: Engineering, QA / Testing, Content, and Career.
+New Tag Toggle: A toggle button in the admin panel to mark blogs as "New", which can then be displayed on your portfolio.
+Automatic sorting to show newest blogs at the top.
+Secure Authentication: The system uses a password-only login that checks against a secret variable (ADMIN_PASSWORD) stored securely in your Cloudflare environment, ensuring no passwords are hardcoded in your source files.
+Please refer to the attached README.md for step-by-step instructions on setting up your D1 database and deploying the Worker and frontend files.
+admin.html
+Code · 2.86 KB
+styles.css
+Code · 5.89 KB
+app.js
+Code · 8.85 KB
+worker.js
+Code · 5.97 KB
+Portfolio Admin Panel - Deployment Guide
+Markdown · 2.51 KB
+View all files in this task
+How was this result?
+i forget one section in this admin panel so add this section the messages from the peoples who are contacted me via portfolio index page lets connect section and the the message box contains firstname, lastname, email address, subject, message these are in the index page section and now contact page message box contains first three options are job offer, collaboration, other and next these are not options and the message box contains firstname, lastname, email address, company/organisation, subject, message these are all in the message box and now the messages from the peoples are stored in the database and now i want that messages should be shown in the admin panel and give option to see the message and give status that message is read and unread if it was opened and read make change as read if it wont show unread in the status and give option to reply to the peoples the given section add to the existing  admin panel okay and whole admin panel code give me as a single html file 
+Lite
+I understand you'd like to add a "Messages" section to your admin panel to manage inquiries from your portfolio's "Let's Connect" and "Contact" pages. I will update the system to include:
+D1 Database Support: Tables to store messages with fields for name, email, company, subject, and message content.
+Cloudflare Worker API: New endpoints to receive messages from your portfolio and fetch/update them in the admin panel.
+Read/Unread Status: Automatic status tracking when you view a message.
+Reply Feature: A quick-reply option to respond to users directly via email.
+Single-File Admin Panel: I will combine the HTML, CSS, and JavaScript into one professional, corporate-style file as requested.
+Let me update the plan and prepare the consolidated code for you.
+I've identified the need to add a Messages section with database tables for inquiries, API endpoints, read/unread tracking, and reply options. Updating architecture to include these features next.
+
+To support the Messages section, I updated the Cloudflare Worker script to include message handling endpoints, moving toward database schema and API integration.
+
+Built the single-file admin panel with Messages section and updated the README with instructions for the new features and contact endpoint. Next, will focus on finalizing API integration.
+
+Lite
+I have updated your admin panel to include the Messages section and consolidated the frontend into a single HTML file as requested.
+Updates and New Features:
+Consolidated Frontend: admin.html now contains all HTML, CSS, and JavaScript, making it much easier to deploy and manage.
+Messages Management:
+Dual Source Support: Handles messages from both your "Let's Connect" section and your "Contact" page.
+Comprehensive Fields: Captures First Name, Last Name, Email, Company, Subject, and Message.
+Read/Unread Status: Messages are marked as "Unread" by default (highlighted in the table) and automatically change to "Read" once you open them.
+Quick Reply: Includes a "Reply via Email" feature that opens your mail client with the sender's details pre-filled.
+Enhanced Backend: The Cloudflare Worker now includes a public /api/contact endpoint so your portfolio can securely send messages to your database without needing an admin password.
+Deployment Instructions:
+Database: Run the SQL provided in the README.md to create the messages table in your Cloudflare D1 database.
+Worker: Update your Cloudflare Worker with the new worker.js code.
+Frontend: Update the API_BASE URL in admin.html (line 153) and upload it to your hosting.
+Portfolio Integration: Update your portfolio's contact forms to send data to your Worker's /api/contact endpoint (details provided in the README.md).
+The design remains professional and corporate, ensuring a great impression for recruiters while giving you full control over your portfolio and communications.
+admin.html
+Code · 20.68 KB
+worker.js
+Code · 7.27 KB
+Portfolio Admin Panel v2 - Deployment Guide
+Markdown · 2.12 KB
+View all files in this task
+Task completed
+How was this result?
+Suggested follow-ups
+
+
+GitHub
+
+
+Manus's Computer
+Manus is using Editor
+Editing file
+README.md
+README.md
+Diff
+Original
+Modified
+# Portfolio Admin Panel v2 - Deployment Guide
+
+This updated admin panel now includes a **Messages** section to manage inquiries from your portfolio.
+
+## 1. Updated Database Setup
+Run this SQL in your Cloudflare D1 dashboard to add the `messages` table:
+
+```sql
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY,
+    first_name TEXT,
+    last_name TEXT,
+    email TEXT,
+    company TEXT,
+    subject TEXT,
+    message TEXT,
+    type TEXT, -- 'lets_connect' or 'contact'
+    category TEXT, -- 'job_offer', 'collaboration', 'other'
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 2. Cloudflare Worker Update
+1. Copy the new `worker.js` content to your Cloudflare Worker.
+2. Ensure the `ADMIN_PASSWORD` secret is set in the Worker settings.
+3. Ensure the D1 binding `DB` is active.
+
+## 3. Frontend Deployment
+The frontend is now a **single file**: `admin.html`.
+1. Open `admin.html` and update the `API_BASE` constant (line 153) to your Worker's URL.
+2. Upload `admin.html` to your static hosting or Cloudflare Pages.
+
+## 4. Connecting your Portfolio to the Admin Panel
+To send messages from your portfolio's "Let's Connect" or "Contact" page to this admin panel, use the public endpoint:
+
+**Endpoint**: `POST https://your-worker.your-subdomain.workers.dev/api/contact`
+
+**JSON Payload Examples:**
+
+*For "Let's Connect" section:*
+```json
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "email": "john@example.com",
+  "subject": "Hello",
+  "message": "Nice portfolio!",
+  "type": "lets_connect"
+}
+```
+
+*For "Contact" page:*
+```json
+{
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "email": "jane@company.com",
+  "company": "Tech Corp",
+  "subject": "Job Offer",
+  "message": "We want to hire you.",
+  "type": "contact",
+  "category": "job_offer"
+}
+```
+
+## 5. New Features
+- **Messages Dashboard**: View all incoming messages with read/unread status.
+- **Read Tracking**: Opening a message automatically marks it as "Read".
+- **Reply Feature**: Click "Reply via Email" to open your default mail client with the recipient and subject pre-filled.
+- **Consolidated Code**: HTML, CSS, and JS are all in one file for easier management.
+
+
+live
+All files in this task
+Today
+
+admin.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --background-color: #f3f4f6;
+            --text-color: #1f2937;
+            --sidebar-bg: #111827;
+            --sidebar-text: #9ca3af;
+            --sidebar-active: #ffffff;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-color: #e5e7eb;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background-color); color: var(--text-color); height: 100vh; overflow: hidden; }
+        .screen { display: none; height: 100%; }
+        .screen.active { display: flex; }
+
+        /* Login Screen */
+        #login-screen { justify-content: center; align-items: center; background: linear-gradient(135deg, var(--primary-color) 0%, #1e1b4b 100%); }
+        .login-card { background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); width: 100%; max-width: 400px; text-align: center; }
+        .login-card h1 { margin-bottom: 0.5rem; color: var(--primary-color); }
+        .login-card p { color: #6b7280; margin-bottom: 1.5rem; }
+        .input-group { margin-bottom: 1.5rem; }
+        .input-group input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; }
+        .btn-primary { background-color: var(--primary-color); color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s; width: 100%; }
+        .btn-primary:hover { background-color: #1e40af; }
+        .error-text { color: var(--error-color); margin-top: 1rem; font-size: 0.9rem; }
+
+        /* Dashboard Screen */
+        .sidebar { width: 260px; background-color: var(--sidebar-bg); color: var(--sidebar-text); display: flex; flex-direction: column; padding: 1.5rem; }
+        .sidebar-header h2 { color: white; margin-bottom: 2rem; font-size: 1.5rem; text-align: center; }
+        .sidebar nav ul { list-style: none; flex-grow: 1; }
+        .nav-item { padding: 0.75rem 1rem; margin-bottom: 0.5rem; border-radius: 6px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; }
+        .nav-item i { margin-right: 0.75rem; width: 20px; }
+        .nav-item:hover { background-color: #1f2937; color: white; }
+        .nav-item.active { background-color: var(--primary-color); color: white; }
+        .sidebar-footer { margin-top: auto; }
+        .btn-outline { background: transparent; border: 1px solid #4b5563; color: #9ca3af; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; width: 100%; }
+        .main-content { flex-grow: 1; overflow-y: auto; padding: 2rem; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border-color); }
+        .content-header h1 { font-size: 1.8rem; color: var(--primary-color); }
+        .content-header .btn-primary { width: auto; }
+
+        /* Data Tables */
+        .data-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .data-table th, .data-table td { padding: 1rem; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background-color: #f9fafb; font-weight: 600; color: #4b5563; }
+        .unread { font-weight: bold; background-color: #f0f9ff; }
+        .status-badge { padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .status-unread { background-color: #fee2e2; color: #991b1b; }
+        .status-read { background-color: #d1fae5; color: #065f46; }
+        .action-btns { display: flex; gap: 0.5rem; }
+        .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; transition: color 0.3s; }
+        .btn-delete { color: var(--error-color); }
+        .btn-view { color: var(--secondary-color); }
+
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background-color: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-modal { position: absolute; right: 1.5rem; top: 1rem; font-size: 1.5rem; cursor: pointer; color: #6b7280; }
+        #form-fields { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group label { font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { padding: 0.6rem; border: 1px solid var(--border-color); border-radius: 4px; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success-color); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Message Detail View */
+        .message-detail p { margin-bottom: 1rem; line-height: 1.5; }
+        .message-label { font-weight: bold; color: var(--primary-color); display: block; margin-bottom: 0.25rem; }
+        .message-body { background: #f9fafb; padding: 1rem; border-radius: 6px; border: 1px solid var(--border-color); white-space: pre-wrap; }
+        .reply-section { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+    <div id="login-screen" class="screen active">
+        <div class="login-card">
+            <h1><i class="fas fa-lock"></i> Admin Portal</h1>
+            <p>Enter your password to manage your portfolio</p>
+            <form id="login-form">
+                <div class="input-group"><input type="password" id="password" placeholder="Password" required></div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            <p id="login-error" class="error-text"></p>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>Admin Panel</h2></div>
+            <nav>
+                <ul>
+                    <li class="nav-item active" data-section="works"><i class="fas fa-briefcase"></i> Works</li>
+                    <li class="nav-item" data-section="experience"><i class="fas fa-history"></i> Experience</li>
+                    <li class="nav-item" data-section="study"><i class="fas fa-graduation-cap"></i> Study</li>
+                    <li class="nav-item" data-section="techstack"><i class="fas fa-layer-group"></i> Tech Stack</li>
+                    <li class="nav-item" data-section="blogs"><i class="fas fa-blog"></i> Blog</li>
+                    <li class="nav-item" data-section="messages"><i class="fas fa-envelope"></i> Messages</li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer"><button id="logout-btn" class="btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+        </aside>
+        <main class="main-content">
+            <header class="content-header">
+                <h1 id="section-title">Works</h1>
+                <button id="add-new-btn" class="btn-primary"><i class="fas fa-plus"></i> Add New</button>
+            </header>
+            <div id="content-area"></div>
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Add New Item</h2>
+            <div id="modal-body">
+                <form id="modal-form">
+                    <div id="form-fields"></div>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSection = 'works';
+        let authToken = localStorage.getItem('adminToken') || '';
+        const API_BASE = '/api'; // UPDATE THIS TO YOUR WORKER URL
+
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const sectionTitle = document.getElementById('section-title');
+        const contentArea = document.getElementById('content-area');
+        const navItems = document.querySelectorAll('.nav-item');
+        const addNewBtn = document.getElementById('add-new-btn');
+        const modal = document.getElementById('modal');
+        const modalForm = document.getElementById('modal-form');
+        const formFields = document.getElementById('form-fields');
+        const closeModal = document.querySelector('.close-modal');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (authToken) showDashboard();
+
+        loginForm.addEventListener('submit', handleLogin);
+        logoutBtn.addEventListener('click', () => { localStorage.removeItem('adminToken'); location.reload(); });
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+                currentSection = item.dataset.section;
+                loadSectionContent();
+            });
+        });
+
+        addNewBtn.addEventListener('click', () => openModal());
+        closeModal.addEventListener('click', () => modal.style.display = 'none');
+        modalForm.addEventListener('submit', handleFormSubmit);
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    authToken = data.token;
+                    localStorage.setItem('adminToken', authToken);
+                    showDashboard();
+                } else {
+                    loginError.textContent = 'Invalid password.';
+                }
+            } catch (err) { loginError.textContent = 'Connection error.'; }
+        }
+
+        function showDashboard() {
+            loginScreen.classList.remove('active');
+            dashboardScreen.classList.add('active');
+            loadSectionContent();
+        }
+
+        async function loadSectionContent() {
+            sectionTitle.textContent = currentSection.charAt(0).toUpperCase() + currentSection.slice(1);
+            addNewBtn.style.display = currentSection === 'messages' ? 'none' : 'block';
+            contentArea.innerHTML = '<p>Loading...</p>';
+            try {
+                const response = await fetch(`${API_BASE}/${currentSection}`, {
+                    headers: { 'Authorization': authToken }
+                });
+                const data = await response.json();
+                renderTable(data);
+            } catch (err) { contentArea.innerHTML = `<p class="error-text">Error: ${err.message}</p>`; }
+        }
+
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                contentArea.innerHTML = '<p>No items found.</p>';
+                return;
+            }
+
+            let html = `<table class="data-table"><thead><tr>`;
+            const headers = currentSection === 'messages' 
+                ? ['status', 'from', 'email', 'subject', 'date', 'actions']
+                : Object.keys(data[0]).filter(h => !['id', 'content', 'description', 'details', 'message'].includes(h));
+            
+            headers.forEach(h => html += `<th>${h.toUpperCase()}</th>`);
+            html += `</tr></thead><tbody>`;
+
+            data.forEach(item => {
+                const isUnread = currentSection === 'messages' && !item.is_read;
+                html += `<tr class="${isUnread ? 'unread' : ''}">`;
+                headers.forEach(h => {
+                    if (h === 'status') {
+                        html += `<td><span class="status-badge ${item.is_read ? 'status-read' : 'status-unread'}">${item.is_read ? 'Read' : 'Unread'}</span></td>`;
+                    } else if (h === 'from') {
+                        html += `<td>${item.first_name} ${item.last_name}</td>`;
+                    } else if (h === 'date') {
+                        html += `<td>${new Date(item.created_at).toLocaleDateString()}</td>`;
+                    } else if (h === 'is_new') {
+                        html += `<td><label class="switch"><input type="checkbox" ${item[h] ? 'checked' : ''} onchange="toggleNewTag(${item.id}, this.checked)"><span class="slider"></span></label></td>`;
+                    } else if (h === 'actions') {
+                        html += `<td class="action-btns">
+                            <button class="btn-icon btn-view" onclick="viewMessage(${JSON.stringify(item).replace(/"/g, '&quot;')})"><i class="fas fa-eye"></i></button>
+                            <button class="btn-icon btn-delete" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
+                        </td>`;
+                    } else {
+                        html += `<td>${item[h] || '-'}</td>`;
+                    }
+                });
+                if (currentSection !== 'messages') {
+                    html += `<td class="action-btns">
+                        <button class="btn-icon btn-delete" onclick="deleteItem(${item.id})"><i class="fas fa-trash"></i></button>
+                    </td>`;
+                }
+                html += `</tr>`;
+            });
+            html += `</tbody></table>`;
+            contentArea.innerHTML = html;
+        }
+
+        function viewMessage(msg) {
+            document.getElementById('modal-title').textContent = "Message Details";
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <div class="message-detail">
+                    <p><span class="message-label">From</span> ${msg.first_name} ${msg.last_name} (${msg.email})</p>
+                    ${msg.company ? `<p><span class="message-label">Company</span> ${msg.company}</p>` : ''}
+                    <p><span class="message-label">Subject</span> ${msg.subject}</p>
+                    <p><span class="message-label">Category</span> ${msg.category || msg.type}</p>
+                    <p><span class="message-label">Message</span></p>
+                    <div class="message-body">${msg.message}</div>
+                    <div class="reply-section">
+                        <a href="mailto:${msg.email}?subject=Re: ${msg.subject}" class="btn-primary" style="text-decoration:none; display:inline-block; text-align:center;">
+                            <i class="fas fa-reply"></i> Reply via Email
+                        </a>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'flex';
+            if (!msg.is_read) markAsRead(msg.id);
+        }
+
+        async function markAsRead(id) {
+            try {
+                await fetch(`${API_BASE}/messages/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': authToken }
+                });
+                loadSectionContent();
+            } catch (err) { console.error(err); }
+        }
+
+        function openModal() {
+            document.getElementById('modal-title').textContent = "Add New Item";
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `<form id="modal-form"><div id="form-fields"></div><button type="submit" class="btn-primary">Save Changes</button></form>`;
+            const newForm = document.getElementById('modal-form');
+            newForm.addEventListener('submit', handleFormSubmit);
+            const fieldsContainer = document.getElementById('form-fields');
+            
+            const fields = getFieldsForSection(currentSection);
+            fields.forEach(f => {
+                const group = document.createElement('div');
+                group.className = 'form-group';
+                if (f.type === 'textarea') group.innerHTML = `<label>${f.label}</label><textarea name="${f.name}" required></textarea>`;
+                else if (f.type === 'select') group.innerHTML = `<label>${f.label}</label><select name="${f.name}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+                else if (f.type === 'checkbox') group.innerHTML = `<label>${f.label}</label><label class="switch"><input type="checkbox" name="${f.name}"><span class="slider"></span></label>`;
+                else group.innerHTML = `<label>${f.label}</label><input type="${f.type}" name="${f.name}" required>`;
+                fieldsContainer.appendChild(group);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function getFieldsForSection(section) {
+            switch(section) {
+                case 'works': return [{ label: 'Title', name: 'title', type: 'text' }, { label: 'Desc', name: 'description', type: 'textarea' }, { label: 'Link', name: 'link', type: 'url' }, { label: 'Image', name: 'image_url', type: 'url' }];
+                case 'experience': return [{ label: 'Job', name: 'job_title', type: 'text' }, { label: 'Company', name: 'company', type: 'text' }, { label: 'Duration', name: 'duration', type: 'text' }, { label: 'Desc', name: 'description', type: 'textarea' }, { label: 'Order', name: 'order_index', type: 'number' }];
+                case 'study': return [{ label: 'Degree', name: 'degree', type: 'text' }, { label: 'Institution', name: 'institution', type: 'text' }, { label: 'Year', name: 'year', type: 'text' }, { label: 'Details', name: 'details', type: 'textarea' }];
+                case 'techstack': return [{ label: 'Skill', name: 'skill_name', type: 'text' }, { label: 'Category', name: 'category', type: 'select', options: ['backend', 'frontend', 'database', 'testing_security', 'cloud', 'tools'] }];
+                case 'blogs': return [{ label: 'Title', name: 'title', type: 'text' }, { label: 'Content', name: 'content', type: 'textarea' }, { label: 'Category', name: 'category', type: 'select', options: ['engineering', 'QA / testing', 'content', 'career'] }, { label: 'New?', name: 'is_new', type: 'checkbox' }];
+            }
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
+            if (currentSection === 'blogs') payload.is_new = formData.get('is_new') === 'on';
+            try {
+                const res = await fetch(`${API_BASE}/${currentSection}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': authToken },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) { modal.style.display = 'none'; loadSectionContent(); }
+            } catch (err) { alert('Error saving'); }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Delete this?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/${currentSection}/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authToken }
+                });
+                if (res.ok) loadSectionContent();
+            } catch (err) { alert('Error'); }
+        }
+
+        async function toggleNewTag(id, isNew) {
+            try {
+                await fetch(`${API_BASE}/blogs/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': authToken },
+                    body: JSON.stringify({ is_new: isNew })
+                });
+            } catch (err) { alert('Error'); }
+        }
+    </script>
+</body>
+</html>
+Admin Panel for Managing Cloudflare-Hosted Portfolio - Manus
