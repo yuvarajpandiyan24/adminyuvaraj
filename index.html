@@ -1,1 +1,1722 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>yuva.admin — Portfolio CMS</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════ */
+:root {
+  --bg:         #080810;
+  --surface:    #0e0e1a;
+  --card:       #12121e;
+  --card2:      #171728;
+  --border:     #1e1e30;
+  --border2:    #272740;
+  --accent:     #7c6fff;
+  --accent-dim: rgba(124,111,255,.14);
+  --accent-glow:rgba(124,111,255,.25);
+  --green:      #00dba8;
+  --green-dim:  rgba(0,219,168,.12);
+  --red:        #ff4d6d;
+  --red-dim:    rgba(255,77,109,.12);
+  --yellow:     #ffc44d;
+  --yellow-dim: rgba(255,196,77,.12);
+  --text:       #ddddf0;
+  --muted:      #5a5a78;
+  --muted2:     #3a3a55;
+  --radius:     14px;
+  --radius-sm:  8px;
+  --sw:         260px; /* sidebar width */
+  --font-h:     'Syne', sans-serif;
+  --font-b:     'Outfit', sans-serif;
+  --font-m:     'JetBrains Mono', monospace;
+  --shadow:     0 4px 24px rgba(0,0,0,.4);
+}
+
+/* ════════════════════════════════════════
+   RESET
+════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;min-height:100vh;overflow-x:hidden;line-height:1.5}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit}
+input,textarea,select{font-family:var(--font-b);font-size:14px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px 14px;width:100%;outline:none;transition:border .18s,box-shadow .18s;-webkit-appearance:none}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+textarea{resize:vertical;min-height:90px;line-height:1.6}
+select option{background:var(--card)}
+img{max-width:100%}
+
+/* ════════════════════════════════════════
+   LOGIN
+════════════════════════════════════════ */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--bg);
+  position:fixed;inset:0;z-index:9999;
+  background-image:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,111,255,.08) 0%, transparent 70%);
+}
+.login-wrap{width:100%;max-width:420px;padding:24px}
+.login-box{
+  background:var(--card);border:1.5px solid var(--border2);
+  border-radius:22px;padding:44px 40px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(124,111,255,.06);
+}
+.login-mark{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-h);font-size:22px;font-weight:800;color:#fff;
+  margin:0 auto 20px;box-shadow:0 8px 24px var(--accent-glow);
+}
+.login-title{font-family:var(--font-h);font-size:22px;font-weight:800;text-align:center;margin-bottom:4px}
+.login-sub{color:var(--muted);font-size:13px;text-align:center;margin-bottom:32px}
+.form-label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.login-input-wrap{position:relative;margin-bottom:20px}
+.login-input-wrap input{padding-right:44px}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;cursor:pointer;background:none;border:none;padding:4px}
+.btn-login{
+  width:100%;padding:13px;background:var(--accent);color:#fff;
+  border-radius:11px;font-family:var(--font-h);font-weight:700;font-size:15px;
+  letter-spacing:.2px;transition:opacity .2s,transform .12s;margin-top:4px;
+  box-shadow:0 4px 20px var(--accent-glow);
+}
+.btn-login:hover{opacity:.88}
+.btn-login:active{transform:scale(.98)}
+.login-hint{text-align:center;color:var(--muted);font-size:12px;margin-top:16px;font-family:var(--font-m)}
+.login-err{
+  color:var(--red);font-size:12.5px;margin-top:12px;text-align:center;
+  background:var(--red-dim);border-radius:8px;padding:8px 12px;display:none
+}
+
+/* ════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════ */
+#app{display:none;min-height:100vh}
+
+/* ════════════════════════════════════════
+   MOBILE TOPBAR (hamburger)
+════════════════════════════════════════ */
+.mobile-topbar{
+  display:none;position:sticky;top:0;z-index:150;
+  background:rgba(8,8,16,.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 16px;height:54px;
+  align-items:center;justify-content:space-between;
+}
+.mobile-brand{font-family:var(--font-h);font-size:16px;font-weight:800}
+.mobile-brand span{color:var(--accent)}
+.hamburger{
+  width:38px;height:38px;border-radius:9px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;background:var(--card);border:1px solid var(--border2);
+}
+.hamburger span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ════════════════════════════════════════
+   SIDEBAR OVERLAY (mobile)
+════════════════════════════════════════ */
+.sidebar-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+  z-index:120;backdrop-filter:blur(2px)
+}
+.sidebar-overlay.open{display:block}
+
+/* ════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════ */
+.sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sw);height:100vh;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  z-index:130;overflow-y:auto;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar::-webkit-scrollbar{width:0}
+
+.sb-brand{
+  padding:24px 20px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.sb-logo{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-h);font-size:14px;font-weight:800;color:#fff;
+}
+.sb-name{font-family:var(--font-h);font-size:15px;font-weight:800;letter-spacing:-.3px}
+.sb-name span{color:var(--accent)}
+.sb-tag{font-size:10.5px;color:var(--muted);font-family:var(--font-m);margin-top:1px}
+
+.sb-section-label{
+  font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--muted2);padding:18px 20px 6px;font-weight:600
+}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 20px;color:var(--muted);font-size:13.5px;font-weight:500;
+  transition:all .16s;position:relative;cursor:pointer;
+  border:none;background:none;width:100%;text-align:left;
+  border-radius:0;
+}
+.ni-icon{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;transition:background .16s;
+  flex-shrink:0;font-size:15px;
+}
+.nav-item:hover{color:var(--text)}
+.nav-item:hover .ni-icon{background:var(--accent-dim)}
+.nav-item.active{color:var(--text)}
+.nav-item.active .ni-icon{background:var(--accent-dim);color:var(--accent)}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:6px;bottom:6px;
+  width:3px;background:var(--accent);border-radius:0 3px 3px 0;
+}
+.ni-label{flex:1}
+.ni-badge{
+  background:var(--red);color:#fff;font-size:10px;font-weight:700;
+  padding:2px 6px;border-radius:20px;font-family:var(--font-m);
+  min-width:18px;text-align:center;
+}
+
+.sb-footer{
+  margin-top:auto;padding:16px 20px;
+  border-top:1px solid var(--border);
+}
+.sb-user{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;
+}
+.sb-avatar{
+  width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-h);font-size:12px;font-weight:800;color:#fff;
+}
+.sb-uname{font-size:13px;font-weight:600}
+.sb-uemail{font-size:11px;color:var(--muted);font-family:var(--font-m)}
+.btn-logout{
+  display:flex;align-items:center;gap:9px;
+  color:var(--red);font-size:13px;font-weight:500;
+  padding:8px 12px;border-radius:9px;width:100%;
+  transition:background .15s;
+}
+.btn-logout:hover{background:var(--red-dim)}
+
+/* ════════════════════════════════════════
+   MAIN
+════════════════════════════════════════ */
+.main{
+  margin-left:var(--sw);min-height:100vh;
+  display:flex;flex-direction:column;
+}
+.topbar{
+  position:sticky;top:0;
+  background:rgba(8,8,16,.88);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;height:58px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:50;
+}
+.tb-left{display:flex;align-items:center;gap:10px}
+.tb-title{font-family:var(--font-h);font-size:16px;font-weight:700}
+.tb-right{display:flex;align-items:center;gap:10px}
+.btn-view-portfolio{
+  display:flex;align-items:center;gap:6px;
+  background:var(--card2);border:1px solid var(--border2);
+  color:var(--text);padding:7px 14px;border-radius:9px;
+  font-size:13px;font-weight:500;transition:all .16s;
+}
+.btn-view-portfolio:hover{border-color:var(--accent);color:var(--accent)}
+.btn-view-portfolio span{font-size:12px}
+.tb-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--green));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-h);font-size:11px;font-weight:800;color:#fff;
+}
+
+/* ════════════════════════════════════════
+   CONTENT
+════════════════════════════════════════ */
+.content{padding:28px;flex:1}
+.page{display:none}
+.page.active{display:block;animation:fadeUp .28s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.page-header{
+  display:flex;align-items:flex-start;
+  justify-content:space-between;
+  margin-bottom:24px;gap:12px;flex-wrap:wrap;
+}
+.page-header h1{font-family:var(--font-h);font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2}
+.page-header p{color:var(--muted);font-size:13px;margin-top:4px}
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--accent);color:#fff;
+  padding:9px 18px;border-radius:10px;
+  font-family:var(--font-h);font-weight:700;font-size:13px;
+  white-space:nowrap;transition:opacity .18s,transform .1s;
+  box-shadow:0 3px 14px var(--accent-glow);
+}
+.btn-primary:hover{opacity:.87}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--card2);border:1px solid var(--border2);
+  color:var(--muted);padding:9px 18px;border-radius:10px;
+  font-size:13px;font-weight:500;transition:all .16s;white-space:nowrap;
+}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2)}
+
+/* ════════════════════════════════════════
+   DASHBOARD STATS
+════════════════════════════════════════ */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+  gap:14px;margin-bottom:28px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+  transition:border-color .2s,transform .2s;cursor:default;
+}
+.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.sc-icon{font-size:20px;margin-bottom:10px}
+.sc-val{font-family:var(--font-h);font-size:30px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.sc-label{font-size:12px;color:var(--muted);margin-top:4px}
+.sc-sub{font-size:11px;color:var(--green);margin-top:2px;font-family:var(--font-m)}
+
+.qa-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:10px;margin-bottom:28px;
+}
+.qa-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px 16px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+  transition:all .18s;color:var(--muted);font-size:13px;font-weight:500;
+}
+.qa-card:hover{border-color:var(--accent);color:var(--text);background:var(--accent-dim);transform:translateY(-1px)}
+.qa-icon{font-size:18px;flex-shrink:0}
+
+/* ════════════════════════════════════════
+   BRIDGE NOTICE
+════════════════════════════════════════ */
+.bridge-banner{
+  background:linear-gradient(135deg,rgba(124,111,255,.1),rgba(0,219,168,.07));
+  border:1px solid var(--border2);border-left:3px solid var(--accent);
+  border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;
+}
+.bridge-banner h3{font-family:var(--font-h);font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.bridge-banner p{font-size:12.5px;color:var(--muted);line-height:1.6}
+.bridge-banner code{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:6px;padding:2px 7px;font-family:var(--font-m);
+  font-size:11.5px;color:var(--green);
+}
+
+/* ════════════════════════════════════════
+   TABLE
+════════════════════════════════════════ */
+.table-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+.table-toolbar{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+.search-wrap{position:relative;flex:1;min-width:160px;max-width:280px}
+.search-wrap svg{
+  position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2;
+  pointer-events:none;
+}
+.search-wrap input{padding-left:34px;background:var(--surface)}
+.tbl-count{font-family:var(--font-m);font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+
+.tbl-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:500px}
+thead{background:var(--surface)}
+th{
+  text-align:left;padding:11px 16px;
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.9px;color:var(--muted2);white-space:nowrap;
+}
+td{padding:13px 16px;border-top:1px solid var(--border);font-size:13.5px;vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.015)}
+.td-act{display:flex;gap:6px;flex-wrap:nowrap}
+.btn-edit2{
+  padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;
+  background:var(--accent-dim);color:var(--accent);transition:background .14s;white-space:nowrap;
+}
+.btn-edit2:hover{background:rgba(124,111,255,.28)}
+.btn-del2{
+  padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;
+  background:var(--red-dim);color:var(--red);transition:background .14s;white-space:nowrap;
+}
+.btn-del2:hover{background:rgba(255,77,109,.25)}
+
+/* ════════════════════════════════════════
+   PILLS & TAGS
+════════════════════════════════════════ */
+.tag{
+  display:inline-block;background:var(--accent-dim);color:var(--accent);
+  border-radius:5px;font-size:11px;font-family:var(--font-m);
+  padding:2px 7px;margin:2px;
+}
+.tag.g{background:var(--green-dim);color:var(--green)}
+.tag.y{background:var(--yellow-dim);color:var(--yellow)}
+.tag.r{background:var(--red-dim);color:var(--red)}
+.pill{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;
+}
+.pill::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.pill.live{background:var(--green-dim);color:var(--green)}
+.pill.live::before{background:var(--green)}
+.pill.wip{background:var(--yellow-dim);color:var(--yellow)}
+.pill.wip::before{background:var(--yellow)}
+.pill.published{background:var(--green-dim);color:var(--green)}
+.pill.published::before{background:var(--green)}
+.pill.draft{background:var(--card2);color:var(--muted)}
+.pill.draft::before{background:var(--muted)}
+
+/* ════════════════════════════════════════
+   SKILL BAR
+════════════════════════════════════════ */
+.skill-bar{
+  background:var(--border);border-radius:20px;height:5px;
+  width:110px;overflow:hidden;display:inline-block;vertical-align:middle;
+}
+.skill-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--accent),var(--green));
+  border-radius:20px;
+}
+/* ════════════════════════════════════════
+   PROGRESS BAR
+════════════════════════════════════════ */
+.prog-bar{background:var(--border);border-radius:20px;height:7px;overflow:hidden;flex:1}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:20px;transition:width .5s ease}
+
+/* ════════════════════════════════════════
+   CONTACT CARDS
+════════════════════════════════════════ */
+.contact-list{display:flex;flex-direction:column;gap:10px}
+.cc{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;
+  display:flex;gap:14px;transition:border-color .18s;
+}
+.cc.unread{border-left:3px solid var(--accent)}
+.cc:hover{border-color:var(--border2)}
+.cc-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);flex-shrink:0;margin-top:7px;
+}
+.cc-dot.r{background:var(--muted2)}
+.cc-body{flex:1;min-width:0}
+.cc-row1{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+.cc-name{font-weight:600;font-size:14px}
+.cc-email{font-family:var(--font-m);font-size:11.5px;color:var(--muted)}
+.cc-time{font-family:var(--font-m);font-size:11px;color:var(--muted2);margin-left:auto;white-space:nowrap}
+.cc-subject{font-weight:500;font-size:13.5px;margin-bottom:5px}
+.cc-msg{color:var(--muted);font-size:13px;line-height:1.6;word-break:break-word}
+.cc-acts{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+
+/* ════════════════════════════════════════
+   EMPTY STATE
+════════════════════════════════════════ */
+.empty-state{
+  text-align:center;padding:56px 20px;color:var(--muted);
+}
+.es-icon{font-size:36px;margin-bottom:10px;opacity:.6}
+.es-text{font-size:14px}
+
+/* ════════════════════════════════════════
+   MODAL
+════════════════════════════════════════ */
+.modal-ov{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(5px);
+  z-index:500;align-items:center;justify-content:center;padding:16px;
+}
+.modal-ov.open{display:flex}
+.modal{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:20px;width:580px;max-width:100%;
+  max-height:90vh;overflow-y:auto;
+  animation:mIn .22s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+}
+.modal::-webkit-scrollbar{width:5px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes mIn{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-head{
+  padding:22px 26px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--card);z-index:1;
+}
+.modal-head h2{font-family:var(--font-h);font-size:17px;font-weight:800}
+.modal-x{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--muted);font-size:20px;line-height:1;transition:all .14s;
+}
+.modal-x:hover{background:var(--border);color:var(--text)}
+.modal-body{padding:22px 26px}
+.fg{display:flex;flex-direction:column;gap:14px}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group label,.form-label{
+  display:block;font-size:11.5px;color:var(--muted);
+  margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;
+}
+.modal-foot{
+  padding:14px 26px 22px;display:flex;gap:8px;justify-content:flex-end;
+  border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--card);
+}
+.btn-cancel2{
+  padding:9px 18px;border-radius:9px;background:var(--card2);
+  border:1px solid var(--border2);color:var(--muted);
+  font-size:13px;font-weight:600;transition:all .14s;
+}
+.btn-cancel2:hover{color:var(--text);border-color:var(--border2)}
+.btn-save2{
+  padding:9px 22px;border-radius:9px;background:var(--accent);
+  color:#fff;font-family:var(--font-h);font-size:13px;font-weight:700;
+  transition:opacity .15s;box-shadow:0 3px 12px var(--accent-glow);
+}
+.btn-save2:hover{opacity:.86}
+
+/* ════════════════════════════════════════
+   CONFIRM DIALOG
+════════════════════════════════════════ */
+.confirm-ov{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(5px);
+  z-index:600;align-items:center;justify-content:center;padding:16px;
+}
+.confirm-ov.open{display:flex}
+.confirm-box{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:18px;padding:32px 32px 28px;
+  width:340px;max-width:100%;text-align:center;
+  animation:mIn .2s ease;box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+.conf-icon{font-size:38px;margin-bottom:14px}
+.confirm-box h3{font-family:var(--font-h);font-size:17px;font-weight:800;margin-bottom:8px}
+.confirm-box p{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.6}
+.conf-btns{display:flex;gap:10px;justify-content:center}
+.btn-conf-del{
+  padding:10px 24px;background:var(--red);color:#fff;
+  border-radius:9px;font-weight:700;font-size:13px;transition:opacity .14s;
+}
+.btn-conf-del:hover{opacity:.82}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+#toasts{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  display:flex;flex-direction:column;gap:8px;
+  pointer-events:none;
+}
+.toast{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:12px;padding:12px 18px;
+  display:flex;align-items:center;gap:10px;
+  font-size:13.5px;font-weight:500;
+  box-shadow:0 8px 32px rgba(0,0,0,.45);
+  animation:tIn .22s ease;max-width:300px;
+  pointer-events:all;
+}
+@keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+@keyframes tOut{to{opacity:0;transform:translateX(16px)}}
+.toast.out{animation:tOut .2s ease forwards}
+.ti{font-size:16px}
+.toast.s .ti{color:var(--green)}
+.toast.e .ti{color:var(--red)}
+.toast.w .ti{color:var(--yellow)}
+
+/* ════════════════════════════════════════
+   RANGE INPUT
+════════════════════════════════════════ */
+input[type=range]{
+  padding:0;height:36px;border:none;background:none;
+  box-shadow:none;accent-color:var(--accent);cursor:pointer;
+}
+input[type=range]:focus{box-shadow:none}
+
+/* ════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+════════════════════════════════════════ */
+@media(max-width:900px){
+  .mobile-topbar{display:flex}
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .topbar{display:none}
+  .content{padding:18px 14px}
+  .page-header h1{font-size:19px}
+  .fg-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(3,1fr)}
+  .qa-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+  .login-box{padding:32px 22px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .qa-grid{grid-template-columns:1fr 1fr}
+  .bridge-banner p{font-size:12px}
+  .modal{border-radius:16px}
+  .modal-head,.modal-body,.modal-foot{padding-left:18px;padding-right:18px}
+  .tbl-count{display:none}
+  .table-toolbar{gap:8px}
+  #toasts{bottom:14px;right:14px;left:14px}
+  .toast{max-width:100%}
+  .cc{padding:14px 16px}
+  .cc-time{display:none}
+  .cc-acts{flex-direction:column}
+  .cc-acts a,.cc-acts button{width:100%;justify-content:center;text-align:center}
+}
+@media(max-width:380px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .qa-grid{grid-template-columns:1fr}
+  .content{padding:14px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-box">
+      <div class="login-mark">Y</div>
+      <div class="login-title">yuva.admin</div>
+      <div class="login-sub">Portfolio Control Panel</div>
+      <label class="form-label">Admin Password</label>
+      <div class="login-input-wrap">
+        <input type="password" id="lpw" placeholder="Enter password…"
+          onkeydown="if(event.key==='Enter')doLogin()"/>
+        <button class="pw-toggle" onclick="togglePw()" id="pwtoggle">👁</button>
+      </div>
+      <button class="btn-login" onclick="doLogin()">Enter Dashboard →</button>
+      <div class="login-hint">Default: <code>yuva2025</code> — change in JS</div>
+      <div class="login-err" id="lerr">⚠ Wrong password. Try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar" id="mobile-topbar">
+    <div class="mobile-brand">yuva<span>.</span>admin</div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">Y</div>
+      <div>
+        <div class="sb-name">yuva<span>.</span>admin</div>
+        <div class="sb-tag">contact@yuvarajp.in</div>
+      </div>
+    </div>
+
+    <div class="sb-section-label">Overview</div>
+    <button class="nav-item active" data-s="dashboard" onclick="nav('dashboard');closeSidebar()">
+      <span class="ni-icon">⬡</span><span class="ni-label">Dashboard</span>
+    </button>
+
+    <div class="sb-section-label">Portfolio Sections</div>
+    <button class="nav-item" data-s="works" onclick="nav('works');closeSidebar()">
+      <span class="ni-icon">◈</span><span class="ni-label">Works / Projects</span>
+    </button>
+    <button class="nav-item" data-s="experience" onclick="nav('experience');closeSidebar()">
+      <span class="ni-icon">◎</span><span class="ni-label">Experience</span>
+    </button>
+    <button class="nav-item" data-s="study" onclick="nav('study');closeSidebar()">
+      <span class="ni-icon">◷</span><span class="ni-label">Education</span>
+    </button>
+    <button class="nav-item" data-s="techstack" onclick="nav('techstack');closeSidebar()">
+      <span class="ni-icon">⬡</span><span class="ni-label">Tech Stack</span>
+    </button>
+    <button class="nav-item" data-s="problemsolving" onclick="nav('problemsolving');closeSidebar()">
+      <span class="ni-icon">◈</span><span class="ni-label">Problem Solving</span>
+    </button>
+    <button class="nav-item" data-s="wip" onclick="nav('wip');closeSidebar()">
+      <span class="ni-icon">◌</span><span class="ni-label">Under Development</span>
+    </button>
+    <button class="nav-item" data-s="blog" onclick="nav('blog');closeSidebar()">
+      <span class="ni-icon">✏</span><span class="ni-label">Blog</span>
+    </button>
+    <button class="nav-item" data-s="contact" onclick="nav('contact');closeSidebar()">
+      <span class="ni-icon">📬</span><span class="ni-label">Contact Inbox</span>
+      <span class="ni-badge" id="unread-badge" style="display:none">0</span>
+    </button>
+
+    <div class="sb-section-label">Settings</div>
+    <button class="nav-item" data-s="settings" onclick="nav('settings');closeSidebar()">
+      <span class="ni-icon">⚙</span><span class="ni-label">Settings</span>
+    </button>
+
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar">YP</div>
+        <div>
+          <div class="sb-uname">Yuvaraj P</div>
+          <div class="sb-uemail">contact@yuvarajp.in</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⏻ &nbsp;Log Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="tb-left">
+        <div class="tb-title" id="tb-title">Dashboard</div>
+      </div>
+      <div class="tb-right">
+        <a href="https://www.yuvarajpandian.in/" target="_blank" class="btn-view-portfolio">
+          <span>↗</span> View Portfolio
+        </a>
+        <div class="tb-avatar">YP</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1>Welcome back, Yuvaraj 👋</h1>
+            <p id="dash-time" style="color:var(--muted);font-size:13px;margin-top:4px"></p>
+          </div>
+        </div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="page-header" style="margin-bottom:12px">
+          <div><h1 style="font-size:16px;font-weight:700">Quick Actions</h1></div>
+        </div>
+        <div class="qa-grid">
+          <div class="qa-card" onclick="nav('works')"><span class="qa-icon">+</span>Add Project</div>
+          <div class="qa-card" onclick="nav('blog')"><span class="qa-icon">✏</span>Write Blog</div>
+          <div class="qa-card" onclick="nav('techstack')"><span class="qa-icon">⬡</span>Update Skills</div>
+          <div class="qa-card" onclick="nav('contact')"><span class="qa-icon">📬</span>Check Messages</div>
+          <div class="qa-card" onclick="nav('wip')"><span class="qa-icon">🔧</span>WIP Projects</div>
+          <div class="qa-card" onclick="exportAll()"><span class="qa-icon">⬇</span>Export Backup</div>
+          <div class="qa-card" onclick="importBackup()"><span class="qa-icon">⬆</span>Import Backup</div>
+          <div class="qa-card" onclick="showBridgeInfo()"><span class="qa-icon">🔗</span>Portfolio Bridge</div>
+        </div>
+        <div id="bridge-banner-wrap"></div>
+      </div>
+
+      <!-- ══ WORKS ══ -->
+      <div class="page" id="page-works">
+        <div class="page-header">
+          <div><h1>Works / Projects</h1><p>Manage your portfolio projects</p></div>
+          <button class="btn-primary" onclick="openModal('works')">+ Add Project</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+              <input type="text" placeholder="Search projects…" oninput="filterTbl('works-tb',this.value)"/>
+            </div>
+            <span class="tbl-count" id="works-count"></span>
+          </div>
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Title</th><th>Tech</th><th>Status</th><th>Links</th><th>Actions</th>
+            </tr></thead><tbody id="works-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EXPERIENCE ══ -->
+      <div class="page" id="page-experience">
+        <div class="page-header">
+          <div><h1>Experience</h1><p>Work, internships & club roles</p></div>
+          <button class="btn-primary" onclick="openModal('experience')">+ Add Experience</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+              <input type="text" placeholder="Search…" oninput="filterTbl('exp-tb',this.value)"/>
+            </div>
+            <span class="tbl-count" id="exp-count"></span>
+          </div>
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Organization</th><th>Role</th><th>Duration</th><th>Type</th><th>Actions</th>
+            </tr></thead><tbody id="exp-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ STUDY ══ -->
+      <div class="page" id="page-study">
+        <div class="page-header">
+          <div><h1>Education</h1><p>Academic background</p></div>
+          <button class="btn-primary" onclick="openModal('study')">+ Add Education</button>
+        </div>
+        <div class="table-card">
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Institution</th><th>Degree / Level</th><th>Year</th><th>Grade</th><th>Actions</th>
+            </tr></thead><tbody id="study-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TECH STACK ══ -->
+      <div class="page" id="page-techstack">
+        <div class="page-header">
+          <div><h1>Tech Stack</h1><p>Skills & proficiency levels</p></div>
+          <button class="btn-primary" onclick="openModal('techstack')">+ Add Skill</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+              <input type="text" placeholder="Search skills…" oninput="filterTbl('tech-tb',this.value)"/>
+            </div>
+          </div>
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Skill</th><th>Category</th><th>Proficiency</th><th>Actions</th>
+            </tr></thead><tbody id="tech-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PROBLEM SOLVING ══ -->
+      <div class="page" id="page-problemsolving">
+        <div class="page-header">
+          <div><h1>Problem Solving</h1><p>Competitive programming profiles</p></div>
+          <button class="btn-primary" onclick="openModal('problemsolving')">+ Add Platform</button>
+        </div>
+        <div class="table-card">
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Platform</th><th>Username</th><th>Solved</th><th>URL</th><th>Actions</th>
+            </tr></thead><tbody id="ps-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ WIP ══ -->
+      <div class="page" id="page-wip">
+        <div class="page-header">
+          <div><h1>Under Development</h1><p>Work-in-progress projects</p></div>
+          <button class="btn-primary" onclick="openModal('wip')">+ Add WIP</button>
+        </div>
+        <div class="table-card">
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Project</th><th>Description</th><th>Progress</th><th>ETA</th><th>Actions</th>
+            </tr></thead><tbody id="wip-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BLOG ══ -->
+      <div class="page" id="page-blog">
+        <div class="page-header">
+          <div>
+            <h1>Blog</h1>
+            <p>Published posts appear live at <code style="font-family:var(--font-m);font-size:11px;color:var(--green)">yuvarajpandian.in/#blog</code> via the bridge script</p>
+          </div>
+          <button class="btn-primary" onclick="openModal('blog')">+ New Post</button>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
+              <input type="text" placeholder="Search posts…" oninput="filterTbl('blog-tb',this.value)"/>
+            </div>
+            <span class="tbl-count" id="blog-count"></span>
+          </div>
+          <div class="tbl-outer">
+            <table><thead><tr>
+              <th>Title</th><th>Tags</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr></thead><tbody id="blog-tb"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONTACT ══ -->
+      <div class="page" id="page-contact">
+        <div class="page-header">
+          <div>
+            <h1>Contact Inbox</h1>
+            <p>Messages submitted through your portfolio contact form</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-secondary" onclick="markAllRead()">✓ Mark All Read</button>
+            <button class="btn-secondary" onclick="clearReadMsgs()" style="color:var(--red)">🗑 Clear Read</button>
+          </div>
+        </div>
+        <div class="contact-list" id="contact-list"></div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <div><h1>Settings</h1><p>Admin configuration & data management</p></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;max-width:600px">
+
+          <div class="table-card" style="padding:22px 24px">
+            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">🔑 Change Password</h3>
+            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">Password is stored in code. Edit <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">ADMIN_PW</code> in the HTML file to change it.</p>
+          </div>
+
+          <div class="table-card" style="padding:22px 24px">
+            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">📦 Data Management</h3>
+            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">Export your data as JSON backup or import a previous backup. Data is stored in your browser's localStorage.</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-primary" onclick="exportAll()">⬇ Export Backup</button>
+              <button class="btn-secondary" onclick="importBackup()">⬆ Import Backup</button>
+              <button class="btn-secondary" style="color:var(--red)" onclick="clearAllData()">🗑 Clear All Data</button>
+            </div>
+          </div>
+
+          <div class="table-card" style="padding:22px 24px">
+            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">🔗 Portfolio Bridge Script</h3>
+            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">
+              Add this <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">&lt;script&gt;</code> tag to your portfolio's HTML to make blog posts and contact messages sync with this admin panel. Both files must be served from the <strong>same domain/device</strong> to share localStorage.
+            </p>
+            <pre id="bridge-code" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:14px;font-family:var(--font-m);font-size:11px;color:var(--green);overflow-x:auto;white-space:pre;line-height:1.6"></pre>
+            <button class="btn-secondary" style="margin-top:10px" onclick="copyBridgeCode()">📋 Copy Code</button>
+          </div>
+
+          <div class="table-card" style="padding:22px 24px">
+            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">📡 Real Sync Options</h3>
+            <p style="color:var(--muted);font-size:12.5px;line-height:1.6">
+              For cross-device sync (phone + laptop), upgrade the <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">DB</code> layer to use Firebase Firestore — just replace the localStorage calls. See Dashboard → Portfolio Bridge for instructions.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<!-- ══ MODAL ══ -->
+<div class="modal-ov" id="modal-ov">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">Add Item</h2>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel2" onclick="closeModal()">Cancel</button>
+      <button class="btn-save2" onclick="saveModal()">Save Changes →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONFIRM ══ -->
+<div class="confirm-ov" id="confirm-ov">
+  <div class="confirm-box">
+    <div class="conf-icon">🗑</div>
+    <h3>Delete this item?</h3>
+    <p>This action cannot be undone. The item will be permanently removed.</p>
+    <div class="conf-btns">
+      <button class="btn-cancel2" onclick="closeConfirm()">Cancel</button>
+      <button class="btn-conf-del" onclick="confirmDel()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- hidden file input for import -->
+<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)"/>
+
+<!-- ══ TOASTS ══ -->
+<div id="toasts"></div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════
+   CONFIG — CHANGE PASSWORD HERE
+════════════════════════════════════════ */
+const ADMIN_PW = 'yuva2025';
+const STORAGE_PREFIX = 'ypa_'; // shared with portfolio bridge
+
+/* ════════════════════════════════════════
+   AUTH
+════════════════════════════════════════ */
+function doLogin(){
+  const pw=_id('lpw').value.trim();
+  if(pw===ADMIN_PW){
+    sessionStorage.setItem('ypa_auth','1');
+    _id('login-screen').style.display='none';
+    _id('app').style.display='block';
+    initApp();
+  } else {
+    const err=_id('lerr');
+    err.style.display='block';
+    _id('lpw').style.borderColor='var(--red)';
+    _id('lpw').focus();
+    setTimeout(()=>{err.style.display='none';_id('lpw').style.borderColor='';},3500);
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem('ypa_auth');
+  location.reload();
+}
+function togglePw(){
+  const i=_id('lpw');
+  const show=i.type==='password';
+  i.type=show?'text':'password';
+  _id('pwtoggle').textContent=show?'🙈':'👁';
+}
+// Auto-login if already authed
+if(sessionStorage.getItem('ypa_auth')){
+  _id('login-screen').style.display='none';
+  _id('app').style.display='block';
+}
+
+/* ════════════════════════════════════════
+   DB — localStorage with SHARED prefix
+   Portfolio bridge reads same keys
+════════════════════════════════════════ */
+const DB = {
+  get(k){ try{return JSON.parse(localStorage.getItem(STORAGE_PREFIX+k)||'[]')}catch{return[]} },
+  set(k,v){ localStorage.setItem(STORAGE_PREFIX+k,JSON.stringify(v)); fireEvent(k); },
+  add(k,item){
+    const items=this.get(k);
+    item.id='id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    item.createdAt=new Date().toISOString(); // ISO for correct sorting
+    items.push(item);
+    this.set(k,items);
+    return item;
+  },
+  update(k,id,data){
+    const items=this.get(k);
+    const i=items.findIndex(x=>x.id===id);
+    if(i>-1){
+      items[i]={...items[i],...data};
+      items[i].updatedAt=new Date().toISOString();
+    }
+    this.set(k,items);
+  },
+  del(k,id){ this.set(k,this.get(k).filter(x=>x.id!==id)); }
+};
+
+// Fire storage event so portfolio page (same window in dev) can react
+function fireEvent(key){
+  try{
+    window.dispatchEvent(new StorageEvent('storage',{
+      key:STORAGE_PREFIX+key,
+      newValue:localStorage.getItem(STORAGE_PREFIX+key),
+      storageArea:localStorage
+    }));
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════
+   SEED DEMO DATA (only first time)
+════════════════════════════════════════ */
+function seedDemo(){
+  if(!DB.get('works').length){
+    DB.add('works',{title:'PSNA GPA & CGPA Calculator',desc:'A department-wise GPA/CGPA calculator for PSNA College students.',tech:'HTML, CSS, JavaScript',liveUrl:'https://psna-gpacalculator-yuva.netlify.app/',codeUrl:'',status:'live'});
+    DB.add('works',{title:'UiZera Club Website',desc:'Official site for the UiZera Club at PSNA College.',tech:'HTML, CSS, JavaScript',liveUrl:'https://psna-uizera.netlify.app/',codeUrl:'',status:'live'});
+    DB.add('works',{title:'Shopsy App UI Clone',desc:'Replicated Shopsy e-commerce mobile app UI in Figma.',tech:'Figma, UI/UX',liveUrl:'',codeUrl:'',status:'live'});
+  }
+  if(!DB.get('experience').length){
+    DB.add('experience',{org:'UiZera Club – PSNA College',role:'Graphics Designer',duration:'2025 – Present',type:'Club Role',desc:'Visual design and creative content for club activities.'});
+    DB.add('experience',{org:'Fine Arts Club – PSNA College',role:'EXCOM Member',duration:'2025 – Present',type:'Club Role',desc:'Event organization and artistic activities.'});
+  }
+  if(!DB.get('study').length){
+    DB.add('study',{institution:'PSNA College of Engineering and Technology',degree:'B.E. Computer Science and Business Systems',year:'2024 – Present',grade:'8.32 CGPA'});
+    DB.add('study',{institution:"St. Mary's Higher Secondary School, Dindigul",degree:'Higher Secondary (12th)',year:'2022 – 2024',grade:'81%'});
+    DB.add('study',{institution:"St. Micheal's High School, Dindigul",degree:'SSLC (10th)',year:'2022',grade:'86%'});
+  }
+  if(!DB.get('techstack').length){
+    [['HTML/CSS','Frontend',95],['JavaScript','Frontend',85],['Flutter','Mobile',50],['Python','Backend',75],['MongoDB','Database',70],['Git','Tools',85],['Figma','Design',80]].forEach(([n,c,p])=>DB.add('techstack',{name:n,category:c,proficiency:p}));
+  }
+  if(!DB.get('problemsolving').length){
+    DB.add('problemsolving',{platform:'LeetCode',username:'yuvaa-404',solved:'35+',url:'https://leetcode.com/yuvaa-404'});
+  }
+  if(!DB.get('wip').length){
+    DB.add('wip',{title:'AI/ML Personal Project',desc:'Exploring ML concepts and building a small prediction model.',progress:20,eta:'Q3 2025'});
+    DB.add('wip',{title:'Blockchain Experiment',desc:'Learning Solidity, building a simple DApp on testnet.',progress:10,eta:'Q4 2025'});
+  }
+  if(!DB.get('blog').length){
+    DB.add('blog',{title:"My First Hackathon — PERI CREATECH'25",tags:'hackathon, teamwork, learning',status:'published',content:"I recently participated in my first Project Expo — PERI CREATECH'25 — hosted by PERI Institute of Technology, Chennai. It was a great learning experience representing PSNA College of Engineering and Technology."});
+  }
+  // contact starts empty (populated by portfolio form)
+}
+
+/* ════════════════════════════════════════
+   ROUTING
+════════════════════════════════════════ */
+const PAGE_TITLES={
+  dashboard:'Dashboard',works:'Works / Projects',experience:'Experience',
+  study:'Education',techstack:'Tech Stack',problemsolving:'Problem Solving',
+  wip:'Under Development',blog:'Blog',contact:'Contact Inbox',settings:'Settings'
+};
+
+function nav(s){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=_id('page-'+s);
+  if(pg) pg.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const ni=document.querySelector(`[data-s="${s}"]`);
+  if(ni) ni.classList.add('active');
+
+  const t=PAGE_TITLES[s]||s;
+  _id('tb-title').textContent=t;
+
+  // update mobile topbar title if present
+  const mt=document.querySelector('.mobile-topbar .mobile-brand');
+  if(mt) mt.innerHTML=`yuva<span style="color:var(--accent)">.</span>${s==='dashboard'?'admin':s}`;
+
+  renderSection(s);
+  window.scrollTo(0,0);
+}
+
+function renderSection(s){
+  ({dashboard:renderDash,works:renderWorks,experience:renderExp,
+    study:renderStudy,techstack:renderTech,problemsolving:renderPS,
+    wip:renderWIP,blog:renderBlog,contact:renderContact,
+    settings:renderSettings}[s]||(() => {}))();
+}
+
+/* ════════════════════════════════════════
+   MOBILE SIDEBAR
+════════════════════════════════════════ */
+function toggleSidebar(){
+  const sb=_id('sidebar'),ov=_id('sb-overlay'),hb=_id('hamburger');
+  const open=sb.classList.toggle('open');
+  ov.classList.toggle('open',open);
+  hb.classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
+}
+function closeSidebar(){
+  _id('sidebar').classList.remove('open');
+  _id('sb-overlay').classList.remove('open');
+  _id('hamburger').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════ */
+function renderDash(){
+  // Update time
+  _id('dash-time').textContent='Today is '+new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const unread=DB.get('contact').filter(c=>!c.read).length;
+  const stats=[
+    {icon:'◈',val:DB.get('works').length,label:'Projects',sub:'in portfolio'},
+    {icon:'◎',val:DB.get('experience').length,label:'Experiences',sub:'roles & internships'},
+    {icon:'⬡',val:DB.get('techstack').length,label:'Skills',sub:'in tech stack'},
+    {icon:'✏',val:DB.get('blog').filter(b=>b.status==='published').length+' / '+DB.get('blog').length,label:'Blog Posts',sub:'published / total'},
+    {icon:'◌',val:DB.get('wip').length,label:'WIP Projects',sub:'under development'},
+    {icon:'📬',val:unread,label:'Unread Msgs',sub:'in inbox'},
+  ];
+  _id('stats-grid').innerHTML=stats.map(s=>`
+    <div class="stat-card">
+      <div class="sc-icon">${s.icon}</div>
+      <div class="sc-val">${s.val}</div>
+      <div class="sc-label">${s.label}</div>
+      <div class="sc-sub">${s.sub}</div>
+    </div>`).join('');
+  updateBadge();
+}
+
+function updateBadge(){
+  const n=DB.get('contact').filter(c=>!c.read).length;
+  const b=_id('unread-badge');
+  if(b){b.textContent=n;b.style.display=n?'inline':'none';}
+}
+
+/* ════════════════════════════════════════
+   WORKS
+════════════════════════════════════════ */
+function renderWorks(){
+  const items=DB.get('works');
+  _id('works-count').textContent=items.length+' project'+(items.length!==1?'s':'');
+  const tb=_id('works-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  tb.innerHTML=items.map(w=>`
+    <tr data-s="${esc((w.title+w.tech).toLowerCase())}">
+      <td>
+        <div style="font-weight:600">${esc(w.title)}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:2px">${esc(w.desc.slice(0,65))}${w.desc.length>65?'…':''}</div>
+      </td>
+      <td>${w.tech.split(',').map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</td>
+      <td><span class="pill ${w.status==='live'?'live':'wip'}">${w.status}</span></td>
+      <td>${w.liveUrl?`<a href="${w.liveUrl}" target="_blank" style="color:var(--green);font-size:12.5px;font-weight:500">Live ↗</a>`:'<span style="color:var(--muted2)">—</span>'}</td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('works','${w.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('works','${w.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   EXPERIENCE
+════════════════════════════════════════ */
+function renderExp(){
+  const items=DB.get('experience');
+  _id('exp-count').textContent=items.length+' entr'+(items.length===1?'y':'ies');
+  const tb=_id('exp-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  tb.innerHTML=items.map(e=>`
+    <tr data-s="${esc((e.org+e.role).toLowerCase())}">
+      <td style="font-weight:600">${esc(e.org)}</td>
+      <td>${esc(e.role)}</td>
+      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(e.duration)}</td>
+      <td><span class="tag y">${esc(e.type)}</span></td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('experience','${e.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('experience','${e.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   STUDY
+════════════════════════════════════════ */
+function renderStudy(){
+  const items=DB.get('study');
+  const tb=_id('study-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  tb.innerHTML=items.map(s=>`
+    <tr>
+      <td style="font-weight:600">${esc(s.institution)}</td>
+      <td>${esc(s.degree)}</td>
+      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(s.year)}</td>
+      <td><span class="tag g">${esc(s.grade)}</span></td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('study','${s.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('study','${s.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   TECH STACK
+════════════════════════════════════════ */
+function renderTech(){
+  const items=DB.get('techstack');
+  const tb=_id('tech-tb');
+  if(!items.length){tb.innerHTML=emptyRow(4);return;}
+  tb.innerHTML=items.map(t=>`
+    <tr data-s="${esc((t.name+t.category).toLowerCase())}">
+      <td style="font-weight:600">${esc(t.name)}</td>
+      <td><span class="tag">${esc(t.category)}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="skill-bar"><div class="skill-fill" style="width:${t.proficiency}%"></div></div>
+          <span style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${t.proficiency}%</span>
+        </div>
+      </td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('techstack','${t.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('techstack','${t.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   PROBLEM SOLVING
+════════════════════════════════════════ */
+function renderPS(){
+  const items=DB.get('problemsolving');
+  const tb=_id('ps-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  tb.innerHTML=items.map(p=>`
+    <tr>
+      <td style="font-weight:600">${esc(p.platform)}</td>
+      <td style="font-family:var(--font-m);font-size:12.5px">${esc(p.username)}</td>
+      <td><span class="tag g">${esc(p.solved)} solved</span></td>
+      <td>${p.url?`<a href="${p.url}" target="_blank" style="color:var(--green);font-size:12.5px">Profile ↗</a>`:'<span style="color:var(--muted2)">—</span>'}</td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('problemsolving','${p.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('problemsolving','${p.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   WIP
+════════════════════════════════════════ */
+function renderWIP(){
+  const items=DB.get('wip');
+  const tb=_id('wip-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  tb.innerHTML=items.map(w=>`
+    <tr>
+      <td style="font-weight:600">${esc(w.title)}</td>
+      <td style="color:var(--muted);font-size:13px;max-width:220px">${esc(w.desc)}</td>
+      <td style="min-width:150px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="prog-bar"><div class="prog-fill" style="width:${w.progress}%"></div></div>
+          <span style="font-family:var(--font-m);font-size:12px;color:var(--muted);white-space:nowrap">${w.progress}%</span>
+        </div>
+      </td>
+      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(w.eta)}</td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('wip','${w.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('wip','${w.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   BLOG — FIX: correct date + published filter
+════════════════════════════════════════ */
+function renderBlog(){
+  const items=DB.get('blog');
+  const pub=items.filter(b=>b.status==='published').length;
+  _id('blog-count').textContent=`${pub} published / ${items.length} total`;
+  const tb=_id('blog-tb');
+  if(!items.length){tb.innerHTML=emptyRow(5);return;}
+  // Sort: newest first
+  const sorted=[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  tb.innerHTML=sorted.map(b=>`
+    <tr data-s="${esc((b.title+(b.tags||'')).toLowerCase())}">
+      <td style="font-weight:600;max-width:200px">${esc(b.title)}</td>
+      <td>${(b.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</td>
+      <td><span class="pill ${b.status}">${b.status}</span></td>
+      <td style="font-family:var(--font-m);font-size:11.5px;color:var(--muted);white-space:nowrap">${fmtDate(b.createdAt)}</td>
+      <td class="td-act">
+        <button class="btn-edit2" onclick="openModal('blog','${b.id}')">Edit</button>
+        <button class="btn-del2" onclick="askDel('blog','${b.id}')">Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ════════════════════════════════════════
+   CONTACT — FIX: real timestamps, correct unread
+════════════════════════════════════════ */
+function renderContact(){
+  const items=[...DB.get('contact')].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const list=_id('contact-list');
+  if(!items.length){
+    list.innerHTML=`<div class="empty-state"><div class="es-icon">📭</div><p class="es-text">No messages yet. Messages sent via your portfolio contact form will appear here.</p></div>`;
+    updateBadge();return;
+  }
+  list.innerHTML=items.map(c=>`
+    <div class="cc ${c.read?'':'unread'}" id="cc-${c.id}">
+      <div class="cc-dot ${c.read?'r':''}"></div>
+      <div class="cc-body">
+        <div class="cc-row1">
+          <span class="cc-name">${esc(c.name)}</span>
+          <span class="cc-email">${esc(c.email)}</span>
+          <span class="cc-time">${fmtDate(c.createdAt)}</span>
+        </div>
+        <div class="cc-subject">${esc(c.subject||'(No subject)')}</div>
+        <div class="cc-msg">${esc(c.msg)}</div>
+        <div class="cc-acts">
+          <a href="mailto:${esc(c.email)}?subject=${encodeURIComponent('Re: '+(c.subject||''))}"
+             style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;background:var(--accent-dim);color:var(--accent);font-size:12px;font-weight:600">Reply ↗</a>
+          ${!c.read?`<button class="btn-edit2" style="font-size:12px" onclick="markRead('${c.id}')">Mark Read</button>`:''}
+          <button class="btn-del2" style="font-size:12px" onclick="askDel('contact','${c.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`).join('');
+  updateBadge();
+}
+
+function markRead(id){DB.update('contact',id,{read:true});renderContact();renderDash();}
+function markAllRead(){
+  DB.get('contact').forEach(c=>DB.update('contact',c.id,{read:true}));
+  renderContact();renderDash();toast('All messages marked as read','s');
+}
+function clearReadMsgs(){
+  const items=DB.get('contact').filter(c=>!c.read);
+  DB.set('contact',items);
+  renderContact();renderDash();toast('Read messages cleared','w');
+}
+
+/* ════════════════════════════════════════
+   SETTINGS PAGE
+════════════════════════════════════════ */
+function renderSettings(){
+  const code=getBridgeCode();
+  const el=_id('bridge-code');
+  if(el) el.textContent=code;
+}
+
+function getBridgeCode(){
+  return `<!-- Add this to your portfolio's index.html, before </body> -->
+<script>
+(function(){
+  var P='${STORAGE_PREFIX}';
+  // Read blog posts from admin panel
+  function getAdminData(key){
+    try{return JSON.parse(localStorage.getItem(P+key)||'[]');}catch{return [];}
+  }
+  // Submit contact form to admin inbox
+  window.submitToAdmin=function(name,email,subject,msg){
+    var items=getAdminData('contact');
+    items.push({id:'id_'+Date.now(),name:name,email:email,
+      subject:subject,msg:msg,read:false,
+      createdAt:new Date().toISOString()});
+    localStorage.setItem(P+'contact',JSON.stringify(items));
+    // Also fire storage event
+    window.dispatchEvent(new StorageEvent('storage',
+      {key:P+'contact',storageArea:localStorage}));
+    return true;
+  };
+  // Expose published blog posts
+  window.getAdminBlogs=function(){
+    return getAdminData('blog').filter(function(b){
+      return b.status==='published';
+    }).sort(function(a,b){
+      return new Date(b.createdAt)-new Date(a.createdAt);
+    });
+  };
+  // Expose all sections
+  window.getAdminSection=function(key){
+    return getAdminData(key);
+  };
+  window.adminDataReady=true;
+  window.dispatchEvent(new Event('adminReady'));
+})();
+<\/script>`;
+}
+
+function copyBridgeCode(){
+  navigator.clipboard.writeText(getBridgeCode()).then(()=>toast('Bridge code copied!','s')).catch(()=>toast('Copy failed — select manually','e'));
+}
+
+function showBridgeInfo(){
+  nav('settings');
+  setTimeout(()=>{
+    const el=document.querySelector('[data-s="settings"]');
+    if(el) el.scrollIntoView();
+  },200);
+}
+
+/* ════════════════════════════════════════
+   MODAL FORMS
+════════════════════════════════════════ */
+let _mSection='',_editId=null;
+
+const FORMS={
+  works:(d={})=>`
+    <div class="fg">
+      <div class="form-group"><label class="form-label">Project Title *</label>
+        <input id="f-title" value="${esc(d.title||'')}" placeholder="e.g. PSNA GPA Calculator"/></div>
+      <div class="form-group"><label class="form-label">Description</label>
+        <textarea id="f-desc" placeholder="Brief description…">${esc(d.desc||'')}</textarea></div>
+      <div class="form-group"><label class="form-label">Tech Stack (comma separated)</label>
+        <input id="f-tech" value="${esc(d.tech||'')}" placeholder="HTML, CSS, JavaScript"/></div>
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Live URL</label>
+          <input id="f-live" value="${esc(d.liveUrl||'')}" placeholder="https://…"/></div>
+        <div class="form-group"><label class="form-label">Code / GitHub URL</label>
+          <input id="f-code" value="${esc(d.codeUrl||'')}" placeholder="https://github.com/…"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select id="f-status">
+          <option value="live" ${d.status==='live'?'selected':''}>🟢 Live</option>
+          <option value="wip" ${d.status==='wip'?'selected':''}>🟡 Work In Progress</option>
+        </select></div>
+    </div>`,
+  experience:(d={})=>`
+    <div class="fg">
+      <div class="form-group"><label class="form-label">Organization *</label>
+        <input id="f-org" value="${esc(d.org||'')}" placeholder="Company / Club / Institute"/></div>
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Role / Title</label>
+          <input id="f-role" value="${esc(d.role||'')}" placeholder="e.g. Graphics Designer"/></div>
+        <div class="form-group"><label class="form-label">Duration</label>
+          <input id="f-dur" value="${esc(d.duration||'')}" placeholder="2025 – Present"/></div>
+      </div>
+      <div class="form-group"><label class="form-label">Type</label>
+        <select id="f-type">
+          ${['Full-time','Part-time','Internship','Freelance','Club Role','Volunteer','Other'].map(t=>`<option value="${t}" ${d.type===t?'selected':''}>${t}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Description</label>
+        <textarea id="f-desc" placeholder="What did you do here?">${esc(d.desc||'')}</textarea></div>
+    </div>`,
+  study:(d={})=>`
+    <div class="fg">
+      <div class="form-group"><label class="form-label">Institution *</label>
+        <input id="f-inst" value="${esc(d.institution||'')}" placeholder="College / School name"/></div>
+      <div class="form-group"><label class="form-label">Degree / Level</label>
+        <input id="f-deg" value="${esc(d.degree||'')}" placeholder="e.g. B.E. Computer Science and Business Systems"/></div>
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Year</label>
+          <input id="f-year" value="${esc(d.year||'')}" placeholder="2024 – Present"/></div>
+        <div class="form-group"><label class="form-label">Grade / Percentage</label>
+          <input id="f-grade" value="${esc(d.grade||'')}" placeholder="8.32 CGPA / 85%"/></div>
+      </div>
+    </div>`,
+  techstack:(d={})=>`
+    <div class="fg">
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Skill Name *</label>
+          <input id="f-name" value="${esc(d.name||'')}" placeholder="e.g. JavaScript"/></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select id="f-cat">
+            ${['Frontend','Backend','Database','Tools','Mobile','Design','DevOps','Other'].map(c=>`<option value="${c}" ${d.category===c?'selected':''}>${c}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Proficiency — <span id="pv">${d.proficiency||70}</span>%</label>
+        <input type="range" id="f-prof" min="5" max="100" value="${d.proficiency||70}" oninput="_id('pv').textContent=this.value"/>
+      </div>
+    </div>`,
+  problemsolving:(d={})=>`
+    <div class="fg">
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Platform *</label>
+          <input id="f-plat" value="${esc(d.platform||'')}" placeholder="LeetCode / Codeforces…"/></div>
+        <div class="form-group"><label class="form-label">Username</label>
+          <input id="f-uname" value="${esc(d.username||'')}" placeholder="your-handle"/></div>
+      </div>
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Problems Solved</label>
+          <input id="f-solved" value="${esc(d.solved||'')}" placeholder="35+"/></div>
+        <div class="form-group"><label class="form-label">Profile URL</label>
+          <input id="f-url" value="${esc(d.url||'')}" placeholder="https://leetcode.com/…"/></div>
+      </div>
+    </div>`,
+  wip:(d={})=>`
+    <div class="fg">
+      <div class="form-group"><label class="form-label">Project Title *</label>
+        <input id="f-title" value="${esc(d.title||'')}" placeholder="e.g. AI/ML Project"/></div>
+      <div class="form-group"><label class="form-label">Description</label>
+        <textarea id="f-desc" placeholder="What are you building?">${esc(d.desc||'')}</textarea></div>
+      <div class="fg-row">
+        <div class="form-group">
+          <label class="form-label">Progress — <span id="pgv">${d.progress||10}</span>%</label>
+          <input type="range" id="f-prog" min="0" max="100" value="${d.progress||10}" oninput="_id('pgv').textContent=this.value"/>
+        </div>
+        <div class="form-group"><label class="form-label">ETA</label>
+          <input id="f-eta" value="${esc(d.eta||'')}" placeholder="Q3 2025"/></div>
+      </div>
+    </div>`,
+  blog:(d={})=>`
+    <div class="fg">
+      <div class="form-group"><label class="form-label">Post Title *</label>
+        <input id="f-title" value="${esc(d.title||'')}" placeholder="Your blog post title"/></div>
+      <div class="fg-row">
+        <div class="form-group"><label class="form-label">Tags (comma separated)</label>
+          <input id="f-tags" value="${esc(d.tags||'')}" placeholder="web, dev, learning"/></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select id="f-status">
+            <option value="draft" ${d.status==='draft'||!d.status?'selected':''}>📝 Draft</option>
+            <option value="published" ${d.status==='published'?'selected':''}>🟢 Published (Live)</option>
+          </select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Content</label>
+        <textarea id="f-content" style="min-height:180px" placeholder="Write your blog post here… (supports plain text)">${esc(d.content||'')}</textarea></div>
+    </div>`,
+};
+
+const COLLECTORS={
+  works:()=>({title:gv('f-title'),desc:gv('f-desc'),tech:gv('f-tech'),liveUrl:gv('f-live'),codeUrl:gv('f-code'),status:gv('f-status')}),
+  experience:()=>({org:gv('f-org'),role:gv('f-role'),duration:gv('f-dur'),type:gv('f-type'),desc:gv('f-desc')}),
+  study:()=>({institution:gv('f-inst'),degree:gv('f-deg'),year:gv('f-year'),grade:gv('f-grade')}),
+  techstack:()=>({name:gv('f-name'),category:gv('f-cat'),proficiency:parseInt(gv('f-prof')||70)}),
+  problemsolving:()=>({platform:gv('f-plat'),username:gv('f-uname'),solved:gv('f-solved'),url:gv('f-url')}),
+  wip:()=>({title:gv('f-title'),desc:gv('f-desc'),progress:parseInt(gv('f-prog')||0),eta:gv('f-eta')}),
+  blog:()=>({title:gv('f-title'),tags:gv('f-tags'),status:gv('f-status'),content:gv('f-content')}),
+};
+
+const REQUIRED={
+  works:'title',experience:'org',study:'institution',
+  techstack:'name',problemsolving:'platform',wip:'title',blog:'title'
+};
+
+function openModal(section,id=null){
+  _mSection=section;_editId=id;
+  const existing=id?DB.get(section).find(x=>x.id===id):null;
+  const sectionLabels={works:'Project',experience:'Experience',study:'Education',
+    techstack:'Skill',problemsolving:'Platform',wip:'WIP Project',blog:'Blog Post'};
+  _id('modal-title').textContent=(id?'Edit ':'New ')+( sectionLabels[section]||section);
+  _id('modal-body').innerHTML=FORMS[section](existing||{});
+  _id('modal-ov').classList.add('open');
+  // Focus first input
+  setTimeout(()=>{const fi=_id('modal-body').querySelector('input,textarea');if(fi)fi.focus();},80);
+}
+function closeModal(){_id('modal-ov').classList.remove('open');}
+function saveModal(){
+  const data=COLLECTORS[_mSection]();
+  const reqKey=REQUIRED[_mSection];
+  if(reqKey && !data[reqKey]?.trim()){
+    toast('Please fill in the required field','e');
+    const el=document.getElementById('f-'+reqKey)||document.getElementById('f-title')||document.getElementById('f-name')||document.getElementById('f-org')||document.getElementById('f-plat')||document.getElementById('f-inst');
+    if(el){el.style.borderColor='var(--red)';el.focus();setTimeout(()=>el.style.borderColor='',2000);}
+    return;
+  }
+  if(_editId){DB.update(_mSection,_editId,data);toast('Updated ✓','s');}
+  else{DB.add(_mSection,data);toast('Added ✓','s');}
+  closeModal();
+  renderSection(_mSection);
+  renderDash();
+}
+
+/* ════════════════════════════════════════
+   DELETE
+════════════════════════════════════════ */
+let _dSection='',_dId='';
+function askDel(s,id){_dSection=s;_dId=id;_id('confirm-ov').classList.add('open');}
+function closeConfirm(){_id('confirm-ov').classList.remove('open');}
+function confirmDel(){
+  DB.del(_dSection,_dId);closeConfirm();
+  renderSection(_dSection);renderDash();toast('Deleted','w');
+}
+
+/* ════════════════════════════════════════
+   SEARCH FILTER
+════════════════════════════════════════ */
+function filterTbl(tbId,q){
+  document.querySelectorAll(`#${tbId} tr[data-s]`).forEach(r=>{
+    r.style.display=r.dataset.s.includes(q.toLowerCase())?'':'none';
+  });
+}
+
+/* ════════════════════════════════════════
+   EXPORT / IMPORT
+════════════════════════════════════════ */
+const DATA_KEYS=['works','experience','study','techstack','problemsolving','wip','blog','contact'];
+function exportAll(){
+  const data={_version:1,_exported:new Date().toISOString()};
+  DATA_KEYS.forEach(k=>data[k]=DB.get(k));
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`yuvaraj-admin-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+  toast('Backup downloaded!','s');
+}
+function importBackup(){_id('import-file').click();}
+function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      DATA_KEYS.forEach(k=>{if(data[k]&&Array.isArray(data[k]))DB.set(k,data[k]);});
+      renderSection(getCurrentSection());
+      renderDash();
+      toast('Backup imported successfully!','s');
+    }catch{toast('Invalid backup file','e');}
+    e.target.value='';
+  };
+  r.readAsText(file);
+}
+function clearAllData(){
+  if(!confirm('Clear ALL admin data? This cannot be undone.'))return;
+  DATA_KEYS.forEach(k=>localStorage.removeItem(STORAGE_PREFIX+k));
+  renderSection(getCurrentSection());renderDash();toast('All data cleared','w');
+}
+function getCurrentSection(){
+  const a=document.querySelector('.nav-item.active');
+  return a?a.dataset.s:'dashboard';
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+function toast(msg,type='s'){
+  const icons={s:'✓',e:'✕',w:'⚠'};
+  const el=document.createElement('div');
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span class="ti">${icons[type]}</span><span>${msg}</span>`;
+  _id('toasts').appendChild(el);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),220);},2800);
+}
+
+/* ════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════ */
+function _id(id){return document.getElementById(id);}
+function gv(id){const el=_id(id);return el?el.value:'';}
+function esc(s){
+  if(s==null)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+function fmtDate(iso){
+  if(!iso)return'—';
+  try{
+    const d=new Date(iso);
+    if(isNaN(d))return'—';
+    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+
+      d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  }catch{return'—';}
+}
+function emptyRow(cols){
+  return`<tr><td colspan="${cols}"><div class="empty-state"><div class="es-icon">📭</div><p class="es-text">Nothing here yet. Add your first entry!</p></div></td></tr>`;
+}
+
+/* ════════════════════════════════════════
+   CLOSE OVERLAYS ON OUTSIDE CLICK
+════════════════════════════════════════ */
+_id('modal-ov').addEventListener('click',e=>{if(e.target===_id('modal-ov'))closeModal();});
+_id('confirm-ov').addEventListener('click',e=>{if(e.target===_id('confirm-ov'))closeConfirm();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();closeConfirm();closeSidebar();}
+});
+
+/* ════════════════════════════════════════
+   LISTEN FOR CONTACT MESSAGES
+   from portfolio page (same domain)
+════════════════════════════════════════ */
+window.addEventListener('storage',e=>{
+  if(e.key===STORAGE_PREFIX+'contact'){
+    // Re-render contact if on that page
+    if(document.getElementById('page-contact').classList.contains('active'))renderContact();
+    renderDash();
+  }
+});
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+function initApp(){
+  seedDemo();
+  renderDash();
+  updateBadge();
+}
+if(sessionStorage.getItem('ypa_auth'))initApp();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"806d77ffa58846488367511a4658cfcf","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
