@@ -1,1722 +1,2093 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>yuva.admin — Portfolio CMS</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio CMS — Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ════════════════════════════════════════
-   DESIGN TOKENS
-════════════════════════════════════════ */
-:root {
-  --bg:         #080810;
-  --surface:    #0e0e1a;
-  --card:       #12121e;
-  --card2:      #171728;
-  --border:     #1e1e30;
-  --border2:    #272740;
-  --accent:     #7c6fff;
-  --accent-dim: rgba(124,111,255,.14);
-  --accent-glow:rgba(124,111,255,.25);
-  --green:      #00dba8;
-  --green-dim:  rgba(0,219,168,.12);
-  --red:        #ff4d6d;
-  --red-dim:    rgba(255,77,109,.12);
-  --yellow:     #ffc44d;
-  --yellow-dim: rgba(255,196,77,.12);
-  --text:       #ddddf0;
-  --muted:      #5a5a78;
-  --muted2:     #3a3a55;
-  --radius:     14px;
-  --radius-sm:  8px;
-  --sw:         260px; /* sidebar width */
-  --font-h:     'Syne', sans-serif;
-  --font-b:     'Outfit', sans-serif;
-  --font-m:     'JetBrains Mono', monospace;
-  --shadow:     0 4px 24px rgba(0,0,0,.4);
-}
+  :root {
+    --bg: #080b12;
+    --bg2: #0d1120;
+    --bg3: #111827;
+    --card: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.08);
+    --accent: #00f5c3;
+    --accent2: #7b5ea7;
+    --accent3: #f5a623;
+    --red: #ff4d6d;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --muted2: #4b5563;
+    --sidebar-w: 260px;
+    --header-h: 64px;
+    --radius: 14px;
+    --transition: 0.22s cubic-bezier(.4,0,.2,1);
+  }
 
-/* ════════════════════════════════════════
-   RESET
-════════════════════════════════════════ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--text);font-family:var(--font-b);font-size:14px;min-height:100vh;overflow-x:hidden;line-height:1.5}
-a{text-decoration:none;color:inherit}
-button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit}
-input,textarea,select{font-family:var(--font-b);font-size:14px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px 14px;width:100%;outline:none;transition:border .18s,box-shadow .18s;-webkit-appearance:none}
-input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
-textarea{resize:vertical;min-height:90px;line-height:1.6}
-select option{background:var(--card)}
-img{max-width:100%}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ════════════════════════════════════════
-   LOGIN
-════════════════════════════════════════ */
-#login-screen{
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;background:var(--bg);
-  position:fixed;inset:0;z-index:9999;
-  background-image:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,111,255,.08) 0%, transparent 70%);
-}
-.login-wrap{width:100%;max-width:420px;padding:24px}
-.login-box{
-  background:var(--card);border:1.5px solid var(--border2);
-  border-radius:22px;padding:44px 40px;
-  box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(124,111,255,.06);
-}
-.login-mark{
-  width:52px;height:52px;border-radius:14px;
-  background:linear-gradient(135deg,var(--accent),var(--green));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-h);font-size:22px;font-weight:800;color:#fff;
-  margin:0 auto 20px;box-shadow:0 8px 24px var(--accent-glow);
-}
-.login-title{font-family:var(--font-h);font-size:22px;font-weight:800;text-align:center;margin-bottom:4px}
-.login-sub{color:var(--muted);font-size:13px;text-align:center;margin-bottom:32px}
-.form-label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
-.login-input-wrap{position:relative;margin-bottom:20px}
-.login-input-wrap input{padding-right:44px}
-.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;cursor:pointer;background:none;border:none;padding:4px}
-.btn-login{
-  width:100%;padding:13px;background:var(--accent);color:#fff;
-  border-radius:11px;font-family:var(--font-h);font-weight:700;font-size:15px;
-  letter-spacing:.2px;transition:opacity .2s,transform .12s;margin-top:4px;
-  box-shadow:0 4px 20px var(--accent-glow);
-}
-.btn-login:hover{opacity:.88}
-.btn-login:active{transform:scale(.98)}
-.login-hint{text-align:center;color:var(--muted);font-size:12px;margin-top:16px;font-family:var(--font-m)}
-.login-err{
-  color:var(--red);font-size:12.5px;margin-top:12px;text-align:center;
-  background:var(--red-dim);border-radius:8px;padding:8px 12px;display:none
-}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-/* ════════════════════════════════════════
-   APP SHELL
-════════════════════════════════════════ */
-#app{display:none;min-height:100vh}
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
 
-/* ════════════════════════════════════════
-   MOBILE TOPBAR (hamburger)
-════════════════════════════════════════ */
-.mobile-topbar{
-  display:none;position:sticky;top:0;z-index:150;
-  background:rgba(8,8,16,.92);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  padding:0 16px;height:54px;
-  align-items:center;justify-content:space-between;
-}
-.mobile-brand{font-family:var(--font-h);font-size:16px;font-weight:800}
-.mobile-brand span{color:var(--accent)}
-.hamburger{
-  width:38px;height:38px;border-radius:9px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:5px;background:var(--card);border:1px solid var(--border2);
-}
-.hamburger span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
-.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-.hamburger.open span:nth-child(2){opacity:0}
-.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--bg2);
+    border-right: 1px solid var(--card-border);
+    display: flex; flex-direction: column;
+    z-index: 100;
+    transition: transform var(--transition);
+  }
 
-/* ════════════════════════════════════════
-   SIDEBAR OVERLAY (mobile)
-════════════════════════════════════════ */
-.sidebar-overlay{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
-  z-index:120;backdrop-filter:blur(2px)
-}
-.sidebar-overlay.open{display:block}
+  .sidebar-logo {
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid var(--card-border);
+  }
 
-/* ════════════════════════════════════════
-   SIDEBAR
-════════════════════════════════════════ */
-.sidebar{
-  position:fixed;top:0;left:0;
-  width:var(--sw);height:100vh;
-  background:var(--surface);
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;
-  z-index:130;overflow-y:auto;
-  transition:transform .28s cubic-bezier(.4,0,.2,1);
-}
-.sidebar::-webkit-scrollbar{width:0}
+  .logo-mark {
+    display: flex; align-items: center; gap: 10px;
+  }
 
-.sb-brand{
-  padding:24px 20px 18px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:12px;
-}
-.sb-logo{
-  width:36px;height:36px;border-radius:10px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--accent),var(--green));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-h);font-size:14px;font-weight:800;color:#fff;
-}
-.sb-name{font-family:var(--font-h);font-size:15px;font-weight:800;letter-spacing:-.3px}
-.sb-name span{color:var(--accent)}
-.sb-tag{font-size:10.5px;color:var(--muted);font-family:var(--font-m);margin-top:1px}
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px; font-weight: 700;
+    color: #080b12;
+    flex-shrink: 0;
+  }
 
-.sb-section-label{
-  font-size:10px;text-transform:uppercase;letter-spacing:1.2px;
-  color:var(--muted2);padding:18px 20px 6px;font-weight:600
-}
-.nav-item{
-  display:flex;align-items:center;gap:11px;
-  padding:10px 20px;color:var(--muted);font-size:13.5px;font-weight:500;
-  transition:all .16s;position:relative;cursor:pointer;
-  border:none;background:none;width:100%;text-align:left;
-  border-radius:0;
-}
-.ni-icon{
-  width:30px;height:30px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  background:transparent;transition:background .16s;
-  flex-shrink:0;font-size:15px;
-}
-.nav-item:hover{color:var(--text)}
-.nav-item:hover .ni-icon{background:var(--accent-dim)}
-.nav-item.active{color:var(--text)}
-.nav-item.active .ni-icon{background:var(--accent-dim);color:var(--accent)}
-.nav-item.active::before{
-  content:'';position:absolute;left:0;top:6px;bottom:6px;
-  width:3px;background:var(--accent);border-radius:0 3px 3px 0;
-}
-.ni-label{flex:1}
-.ni-badge{
-  background:var(--red);color:#fff;font-size:10px;font-weight:700;
-  padding:2px 6px;border-radius:20px;font-family:var(--font-m);
-  min-width:18px;text-align:center;
-}
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px; font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
 
-.sb-footer{
-  margin-top:auto;padding:16px 20px;
-  border-top:1px solid var(--border);
-}
-.sb-user{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:12px;
-}
-.sb-avatar{
-  width:34px;height:34px;border-radius:50%;flex-shrink:0;
-  background:linear-gradient(135deg,var(--accent),var(--green));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-h);font-size:12px;font-weight:800;color:#fff;
-}
-.sb-uname{font-size:13px;font-weight:600}
-.sb-uemail{font-size:11px;color:var(--muted);font-family:var(--font-m)}
-.btn-logout{
-  display:flex;align-items:center;gap:9px;
-  color:var(--red);font-size:13px;font-weight:500;
-  padding:8px 12px;border-radius:9px;width:100%;
-  transition:background .15s;
-}
-.btn-logout:hover{background:var(--red-dim)}
+  .logo-sub {
+    font-size: 10px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+    margin-top: 3px;
+  }
 
-/* ════════════════════════════════════════
-   MAIN
-════════════════════════════════════════ */
-.main{
-  margin-left:var(--sw);min-height:100vh;
-  display:flex;flex-direction:column;
-}
-.topbar{
-  position:sticky;top:0;
-  background:rgba(8,8,16,.88);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-  padding:0 28px;height:58px;
-  display:flex;align-items:center;justify-content:space-between;
-  z-index:50;
-}
-.tb-left{display:flex;align-items:center;gap:10px}
-.tb-title{font-family:var(--font-h);font-size:16px;font-weight:700}
-.tb-right{display:flex;align-items:center;gap:10px}
-.btn-view-portfolio{
-  display:flex;align-items:center;gap:6px;
-  background:var(--card2);border:1px solid var(--border2);
-  color:var(--text);padding:7px 14px;border-radius:9px;
-  font-size:13px;font-weight:500;transition:all .16s;
-}
-.btn-view-portfolio:hover{border-color:var(--accent);color:var(--accent)}
-.btn-view-portfolio span{font-size:12px}
-.tb-avatar{
-  width:32px;height:32px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),var(--green));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-h);font-size:11px;font-weight:800;color:#fff;
-}
+  .sidebar-nav {
+    flex: 1; padding: 16px 12px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
 
-/* ════════════════════════════════════════
-   CONTENT
-════════════════════════════════════════ */
-.content{padding:28px;flex:1}
-.page{display:none}
-.page.active{display:block;animation:fadeUp .28s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .nav-section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; letter-spacing: 0.15em;
+    color: var(--muted2);
+    text-transform: uppercase;
+    padding: 12px 12px 6px;
+  }
 
-.page-header{
-  display:flex;align-items:flex-start;
-  justify-content:space-between;
-  margin-bottom:24px;gap:12px;flex-wrap:wrap;
-}
-.page-header h1{font-family:var(--font-h);font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.2}
-.page-header p{color:var(--muted);font-size:13px;margin-top:4px}
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all var(--transition);
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-bottom: 2px;
+    position: relative;
+    user-select: none;
+  }
 
-/* ════════════════════════════════════════
-   BUTTONS
-════════════════════════════════════════ */
-.btn-primary{
-  display:inline-flex;align-items:center;gap:7px;
-  background:var(--accent);color:#fff;
-  padding:9px 18px;border-radius:10px;
-  font-family:var(--font-h);font-weight:700;font-size:13px;
-  white-space:nowrap;transition:opacity .18s,transform .1s;
-  box-shadow:0 3px 14px var(--accent-glow);
-}
-.btn-primary:hover{opacity:.87}
-.btn-primary:active{transform:scale(.97)}
-.btn-secondary{
-  display:inline-flex;align-items:center;gap:7px;
-  background:var(--card2);border:1px solid var(--border2);
-  color:var(--muted);padding:9px 18px;border-radius:10px;
-  font-size:13px;font-weight:500;transition:all .16s;white-space:nowrap;
-}
-.btn-secondary:hover{color:var(--text);border-color:var(--border2)}
+  .nav-item:hover { background: var(--card); color: var(--text); }
 
-/* ════════════════════════════════════════
-   DASHBOARD STATS
-════════════════════════════════════════ */
-.stats-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-  gap:14px;margin-bottom:28px;
-}
-.stat-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius);padding:18px;
-  transition:border-color .2s,transform .2s;cursor:default;
-}
-.stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-.sc-icon{font-size:20px;margin-bottom:10px}
-.sc-val{font-family:var(--font-h);font-size:30px;font-weight:800;letter-spacing:-1.5px;line-height:1}
-.sc-label{font-size:12px;color:var(--muted);margin-top:4px}
-.sc-sub{font-size:11px;color:var(--green);margin-top:2px;font-family:var(--font-m)}
+  .nav-item.active {
+    background: linear-gradient(135deg, rgba(0,245,195,0.12), rgba(123,94,167,0.08));
+    color: var(--accent);
+    font-weight: 500;
+  }
 
-.qa-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
-  gap:10px;margin-bottom:28px;
-}
-.qa-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius);padding:14px 16px;
-  display:flex;align-items:center;gap:10px;cursor:pointer;
-  transition:all .18s;color:var(--muted);font-size:13px;font-weight:500;
-}
-.qa-card:hover{border-color:var(--accent);color:var(--text);background:var(--accent-dim);transform:translateY(-1px)}
-.qa-icon{font-size:18px;flex-shrink:0}
+  .nav-item.active::before {
+    content: '';
+    position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 60%;
+    background: var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
 
-/* ════════════════════════════════════════
-   BRIDGE NOTICE
-════════════════════════════════════════ */
-.bridge-banner{
-  background:linear-gradient(135deg,rgba(124,111,255,.1),rgba(0,219,168,.07));
-  border:1px solid var(--border2);border-left:3px solid var(--accent);
-  border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;
-}
-.bridge-banner h3{font-family:var(--font-h);font-size:14px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.bridge-banner p{font-size:12.5px;color:var(--muted);line-height:1.6}
-.bridge-banner code{
-  background:var(--card2);border:1px solid var(--border);
-  border-radius:6px;padding:2px 7px;font-family:var(--font-m);
-  font-size:11.5px;color:var(--green);
-}
+  .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #080b12;
+    font-size: 9px; font-weight: 700;
+    padding: 2px 6px; border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+  }
 
-/* ════════════════════════════════════════
-   TABLE
-════════════════════════════════════════ */
-.table-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius);overflow:hidden;
-}
-.table-toolbar{
-  padding:14px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
-}
-.search-wrap{position:relative;flex:1;min-width:160px;max-width:280px}
-.search-wrap svg{
-  position:absolute;left:11px;top:50%;transform:translateY(-50%);
-  width:14px;height:14px;fill:none;stroke:var(--muted);stroke-width:2;
-  pointer-events:none;
-}
-.search-wrap input{padding-left:34px;background:var(--surface)}
-.tbl-count{font-family:var(--font-m);font-size:11.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .sidebar-footer {
+    padding: 16px;
+    border-top: 1px solid var(--card-border);
+  }
 
-.tbl-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}
-table{width:100%;border-collapse:collapse;min-width:500px}
-thead{background:var(--surface)}
-th{
-  text-align:left;padding:11px 16px;
-  font-size:10.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.9px;color:var(--muted2);white-space:nowrap;
-}
-td{padding:13px 16px;border-top:1px solid var(--border);font-size:13.5px;vertical-align:middle}
-tr:hover td{background:rgba(255,255,255,.015)}
-.td-act{display:flex;gap:6px;flex-wrap:nowrap}
-.btn-edit2{
-  padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;
-  background:var(--accent-dim);color:var(--accent);transition:background .14s;white-space:nowrap;
-}
-.btn-edit2:hover{background:rgba(124,111,255,.28)}
-.btn-del2{
-  padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;
-  background:var(--red-dim);color:var(--red);transition:background .14s;white-space:nowrap;
-}
-.btn-del2:hover{background:rgba(255,77,109,.25)}
+  .sidebar-profile {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    background: var(--card);
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+  }
 
-/* ════════════════════════════════════════
-   PILLS & TAGS
-════════════════════════════════════════ */
-.tag{
-  display:inline-block;background:var(--accent-dim);color:var(--accent);
-  border-radius:5px;font-size:11px;font-family:var(--font-m);
-  padding:2px 7px;margin:2px;
-}
-.tag.g{background:var(--green-dim);color:var(--green)}
-.tag.y{background:var(--yellow-dim);color:var(--yellow)}
-.tag.r{background:var(--red-dim);color:var(--red)}
-.pill{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;
-}
-.pill::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.pill.live{background:var(--green-dim);color:var(--green)}
-.pill.live::before{background:var(--green)}
-.pill.wip{background:var(--yellow-dim);color:var(--yellow)}
-.pill.wip::before{background:var(--yellow)}
-.pill.published{background:var(--green-dim);color:var(--green)}
-.pill.published::before{background:var(--green)}
-.pill.draft{background:var(--card2);color:var(--muted)}
-.pill.draft::before{background:var(--muted)}
+  .profile-avatar {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 13px;
+    color: #080b12; flex-shrink: 0;
+  }
 
-/* ════════════════════════════════════════
-   SKILL BAR
-════════════════════════════════════════ */
-.skill-bar{
-  background:var(--border);border-radius:20px;height:5px;
-  width:110px;overflow:hidden;display:inline-block;vertical-align:middle;
-}
-.skill-fill{
-  height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--green));
-  border-radius:20px;
-}
-/* ════════════════════════════════════════
-   PROGRESS BAR
-════════════════════════════════════════ */
-.prog-bar{background:var(--border);border-radius:20px;height:7px;overflow:hidden;flex:1}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:20px;transition:width .5s ease}
+  .profile-info { flex: 1; min-width: 0; }
+  .profile-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-role { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
 
-/* ════════════════════════════════════════
-   CONTACT CARDS
-════════════════════════════════════════ */
-.contact-list{display:flex;flex-direction:column;gap:10px}
-.cc{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:var(--radius);padding:18px 20px;
-  display:flex;gap:14px;transition:border-color .18s;
-}
-.cc.unread{border-left:3px solid var(--accent)}
-.cc:hover{border-color:var(--border2)}
-.cc-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--accent);flex-shrink:0;margin-top:7px;
-}
-.cc-dot.r{background:var(--muted2)}
-.cc-body{flex:1;min-width:0}
-.cc-row1{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:5px}
-.cc-name{font-weight:600;font-size:14px}
-.cc-email{font-family:var(--font-m);font-size:11.5px;color:var(--muted)}
-.cc-time{font-family:var(--font-m);font-size:11px;color:var(--muted2);margin-left:auto;white-space:nowrap}
-.cc-subject{font-weight:500;font-size:13.5px;margin-bottom:5px}
-.cc-msg{color:var(--muted);font-size:13px;line-height:1.6;word-break:break-word}
-.cc-acts{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+  /* ─── HEADER ─── */
+  .header {
+    position: fixed; top: 0;
+    left: var(--sidebar-w); right: 0;
+    height: var(--header-h);
+    background: rgba(8,11,18,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    z-index: 90;
+  }
 
-/* ════════════════════════════════════════
-   EMPTY STATE
-════════════════════════════════════════ */
-.empty-state{
-  text-align:center;padding:56px 20px;color:var(--muted);
-}
-.es-icon{font-size:36px;margin-bottom:10px;opacity:.6}
-.es-text{font-size:14px}
+  .hamburger {
+    display: none;
+    background: none; border: none;
+    color: var(--text); font-size: 20px;
+    cursor: pointer; padding: 4px;
+  }
 
-/* ════════════════════════════════════════
-   MODAL
-════════════════════════════════════════ */
-.modal-ov{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.7);backdrop-filter:blur(5px);
-  z-index:500;align-items:center;justify-content:center;padding:16px;
-}
-.modal-ov.open{display:flex}
-.modal{
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:20px;width:580px;max-width:100%;
-  max-height:90vh;overflow-y:auto;
-  animation:mIn .22s cubic-bezier(.34,1.56,.64,1);
-  box-shadow:0 24px 80px rgba(0,0,0,.6);
-}
-.modal::-webkit-scrollbar{width:5px}
-.modal::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-@keyframes mIn{from{opacity:0;transform:scale(.93) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.modal-head{
-  padding:22px 26px 18px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;background:var(--card);z-index:1;
-}
-.modal-head h2{font-family:var(--font-h);font-size:17px;font-weight:800}
-.modal-x{
-  width:30px;height:30px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--muted);font-size:20px;line-height:1;transition:all .14s;
-}
-.modal-x:hover{background:var(--border);color:var(--text)}
-.modal-body{padding:22px 26px}
-.fg{display:flex;flex-direction:column;gap:14px}
-.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-group label,.form-label{
-  display:block;font-size:11.5px;color:var(--muted);
-  margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;
-}
-.modal-foot{
-  padding:14px 26px 22px;display:flex;gap:8px;justify-content:flex-end;
-  border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--card);
-}
-.btn-cancel2{
-  padding:9px 18px;border-radius:9px;background:var(--card2);
-  border:1px solid var(--border2);color:var(--muted);
-  font-size:13px;font-weight:600;transition:all .14s;
-}
-.btn-cancel2:hover{color:var(--text);border-color:var(--border2)}
-.btn-save2{
-  padding:9px 22px;border-radius:9px;background:var(--accent);
-  color:#fff;font-family:var(--font-h);font-size:13px;font-weight:700;
-  transition:opacity .15s;box-shadow:0 3px 12px var(--accent-glow);
-}
-.btn-save2:hover{opacity:.86}
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--text);
+    flex: 1;
+  }
 
-/* ════════════════════════════════════════
-   CONFIRM DIALOG
-════════════════════════════════════════ */
-.confirm-ov{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.75);backdrop-filter:blur(5px);
-  z-index:600;align-items:center;justify-content:center;padding:16px;
-}
-.confirm-ov.open{display:flex}
-.confirm-box{
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:18px;padding:32px 32px 28px;
-  width:340px;max-width:100%;text-align:center;
-  animation:mIn .2s ease;box-shadow:0 24px 60px rgba(0,0,0,.6);
-}
-.conf-icon{font-size:38px;margin-bottom:14px}
-.confirm-box h3{font-family:var(--font-h);font-size:17px;font-weight:800;margin-bottom:8px}
-.confirm-box p{color:var(--muted);font-size:13px;margin-bottom:24px;line-height:1.6}
-.conf-btns{display:flex;gap:10px;justify-content:center}
-.btn-conf-del{
-  padding:10px 24px;background:var(--red);color:#fff;
-  border-radius:9px;font-weight:700;font-size:13px;transition:opacity .14s;
-}
-.btn-conf-del:hover{opacity:.82}
+  .page-title span {
+    color: var(--accent);
+  }
 
-/* ════════════════════════════════════════
-   TOAST
-════════════════════════════════════════ */
-#toasts{
-  position:fixed;bottom:24px;right:24px;z-index:9999;
-  display:flex;flex-direction:column;gap:8px;
-  pointer-events:none;
-}
-.toast{
-  background:var(--card);border:1px solid var(--border2);
-  border-radius:12px;padding:12px 18px;
-  display:flex;align-items:center;gap:10px;
-  font-size:13.5px;font-weight:500;
-  box-shadow:0 8px 32px rgba(0,0,0,.45);
-  animation:tIn .22s ease;max-width:300px;
-  pointer-events:all;
-}
-@keyframes tIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
-@keyframes tOut{to{opacity:0;transform:translateX(16px)}}
-.toast.out{animation:tOut .2s ease forwards}
-.ti{font-size:16px}
-.toast.s .ti{color:var(--green)}
-.toast.e .ti{color:var(--red)}
-.toast.w .ti{color:var(--yellow)}
+  .header-actions { display: flex; align-items: center; gap: 10px; }
 
-/* ════════════════════════════════════════
-   RANGE INPUT
-════════════════════════════════════════ */
-input[type=range]{
-  padding:0;height:36px;border:none;background:none;
-  box-shadow:none;accent-color:var(--accent);cursor:pointer;
-}
-input[type=range]:focus{box-shadow:none}
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px;
+    border-radius: 9px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: none; font-family: inherit;
+    text-decoration: none;
+  }
 
-/* ════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS
-════════════════════════════════════════ */
-@media(max-width:900px){
-  .mobile-topbar{display:flex}
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .topbar{display:none}
-  .content{padding:18px 14px}
-  .page-header h1{font-size:19px}
-  .fg-row{grid-template-columns:1fr}
-  .stats-grid{grid-template-columns:repeat(3,1fr)}
-  .qa-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:600px){
-  .login-box{padding:32px 22px}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .qa-grid{grid-template-columns:1fr 1fr}
-  .bridge-banner p{font-size:12px}
-  .modal{border-radius:16px}
-  .modal-head,.modal-body,.modal-foot{padding-left:18px;padding-right:18px}
-  .tbl-count{display:none}
-  .table-toolbar{gap:8px}
-  #toasts{bottom:14px;right:14px;left:14px}
-  .toast{max-width:100%}
-  .cc{padding:14px 16px}
-  .cc-time{display:none}
-  .cc-acts{flex-direction:column}
-  .cc-acts a,.cc-acts button{width:100%;justify-content:center;text-align:center}
-}
-@media(max-width:380px){
-  .stats-grid{grid-template-columns:1fr 1fr}
-  .qa-grid{grid-template-columns:1fr}
-  .content{padding:14px 12px}
-}
+  .btn-primary {
+    background: var(--accent);
+    color: #080b12;
+  }
+  .btn-primary:hover { background: #00ddb0; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,245,195,0.3); }
+
+  .btn-ghost {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--card-border);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); }
+
+  .btn-danger {
+    background: rgba(255,77,109,0.15);
+    color: var(--red);
+    border: 1px solid rgba(255,77,109,0.25);
+  }
+  .btn-danger:hover { background: rgba(255,77,109,0.25); }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ─── MAIN ─── */
+  .main {
+    margin-left: var(--sidebar-w);
+    padding-top: var(--header-h);
+    min-height: 100vh;
+    position: relative; z-index: 1;
+  }
+
+  .page { display: none; padding: 28px; animation: fadeIn 0.25s ease; }
+  .page.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── STAT CARDS ─── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color var(--transition);
+  }
+
+  .stat-card:hover { border-color: rgba(0,245,195,0.25); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .stat-label {
+    font-size: 11px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 30px; font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-value span { color: var(--accent); }
+  .stat-icon { position: absolute; right: 16px; top: 16px; font-size: 22px; opacity: 0.3; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px; font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-title span { color: var(--accent); }
+
+  /* ─── CARD GRID ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .item-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: all var(--transition);
+    position: relative;
+  }
+
+  .item-card:hover {
+    border-color: rgba(0,245,195,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+
+  .item-card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text); margin-bottom: 6px;
+  }
+
+  .item-card-meta {
+    font-size: 12px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 10px;
+  }
+
+  .item-card-desc {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.6; margin-bottom: 14px;
+  }
+
+  .item-card-actions {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+    background: rgba(0,245,195,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,245,195,0.2);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .tag.purple { background: rgba(123,94,167,0.15); color: #a78bda; border-color: rgba(123,94,167,0.3); }
+  .tag.orange { background: rgba(245,166,35,0.12); color: var(--accent3); border-color: rgba(245,166,35,0.25); }
+  .tag.red { background: rgba(255,77,109,0.12); color: var(--red); border-color: rgba(255,77,109,0.25); }
+  .tag.blue { background: rgba(96,165,250,0.12); color: #60a5fa; border-color: rgba(96,165,250,0.25); }
+
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%; display: inline-block;
+    margin-right: 5px;
+    flex-shrink: 0;
+  }
+
+  .status-dot.live { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .status-dot.wip { background: var(--accent3); }
+  .status-dot.draft { background: var(--muted); }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 28px;
+    width: 100%; max-width: 560px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalIn 0.25s cubic-bezier(.34,1.56,.64,1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted2) transparent;
+  }
+
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: none; } }
+
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: var(--card); border: 1px solid var(--card-border);
+    color: var(--muted); width: 32px; height: 32px;
+    border-radius: 8px; cursor: pointer;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+
+  .modal-close:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+  /* ─── FORMS ─── */
+  .form-row { margin-bottom: 18px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+
+  label {
+    display: block;
+    font-size: 11px; font-weight: 600;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--card-border);
+    border-radius: 9px;
+    color: var(--text);
+    font-size: 13.5px;
+    padding: 10px 14px;
+    font-family: inherit;
+    transition: border-color var(--transition);
+    appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,245,195,0.1);
+  }
+
+  textarea { resize: vertical; min-height: 90px; }
+
+  select option { background: var(--bg2); }
+
+  .form-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    margin-top: 24px; padding-top: 20px;
+    border-top: 1px solid var(--card-border);
+  }
+
+  /* ─── TECH STACK GRID ─── */
+  .tech-category {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .tech-category-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .tech-category-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .tech-pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+
+  .tech-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--card-border);
+    font-size: 12.5px; color: var(--text);
+    transition: all var(--transition);
+  }
+
+  .tech-pill:hover { border-color: var(--accent); color: var(--accent); }
+  .tech-pill .remove-btn { color: var(--muted); cursor: pointer; font-size: 14px; margin-left: 2px; }
+  .tech-pill .remove-btn:hover { color: var(--red); }
+
+  /* ─── BLOG TABLE ─── */
+  .blog-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .blog-item {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 16px;
+    transition: all var(--transition);
+    flex-wrap: wrap;
+  }
+
+  .blog-item:hover { border-color: rgba(0,245,195,0.2); }
+
+  .blog-item-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    flex-shrink: 0; width: 24px; text-align: right;
+  }
+
+  .blog-item-info { flex: 1; min-width: 0; }
+  .blog-item-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 700;
+    color: var(--text); margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .blog-item-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    flex-wrap: wrap;
+  }
+
+  .blog-item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+  /* ─── EXPERIENCE / STUDY ─── */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative; margin-bottom: 16px;
+  }
+
+  .timeline-dot {
+    position: absolute; left: -28px; top: 16px;
+    width: 10px; height: 10px;
+    background: var(--accent); border-radius: 50%;
+    border: 2px solid var(--bg2);
+    box-shadow: 0 0 8px rgba(0,245,195,0.5);
+  }
+
+  /* ─── CONTACT ─── */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .contact-item {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: all var(--transition);
+  }
+
+  .contact-item:hover { border-color: rgba(0,245,195,0.2); }
+
+  .contact-icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    background: rgba(0,245,195,0.1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 3px; text-transform: uppercase; }
+  .contact-value { font-size: 13.5px; color: var(--text); font-weight: 500; word-break: break-word; }
+
+  /* ─── PROBLEM SOLVING ─── */
+  .ps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .ps-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: all var(--transition);
+  }
+
+  .ps-card:hover { border-color: rgba(0,245,195,0.2); transform: translateY(-2px); }
+
+  .ps-platform {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text); margin-bottom: 4px;
+  }
+
+  .ps-count {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px; font-weight: 700;
+    color: var(--accent); margin: 8px 0;
+  }
+
+  .ps-label { font-size: 11px; color: var(--muted); }
+
+  /* ─── MOBILE OVERLAY ─── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 99;
+    background: rgba(0,0,0,0.6);
+  }
+
+  /* ─── TOAST ─── */
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px;
+    z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+  }
+
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 13px 18px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text);
+    animation: slideIn 0.3s ease;
+    min-width: 240px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .toast.success { border-color: rgba(0,245,195,0.4); }
+  .toast.error { border-color: rgba(255,77,109,0.4); }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+
+  /* ─── SEARCH BAR ─── */
+  .search-bar {
+    position: relative; flex: 1; max-width: 280px;
+  }
+
+  .search-bar input {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    padding: 8px 14px 8px 36px;
+    font-size: 13px;
+  }
+
+  .search-bar::before {
+    content: '🔍';
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; z-index: 1;
+  }
+
+  /* ─── DEPLOY STATUS ─── */
+  .deploy-bar {
+    background: rgba(0,245,195,0.06);
+    border: 1px solid rgba(0,245,195,0.15);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .deploy-label { font-size: 12px; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .deploy-status { font-size: 12px; color: var(--accent); font-family: 'Space Mono', monospace; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    :root { --sidebar-w: 260px; }
+
+    .sidebar {
+      transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+      box-shadow: 4px 0 40px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-overlay.open { display: block; }
+
+    .hamburger { display: flex; align-items: center; }
+
+    .main { margin-left: 0; }
+
+    .header { left: 0; padding: 0 16px; }
+
+    .page { padding: 16px; }
+
+    .form-row-2 { grid-template-columns: 1fr; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .card-grid { grid-template-columns: 1fr; }
+
+    .blog-item { gap: 10px; }
+    .blog-item-num { display: none; }
+
+    .section-header { gap: 8px; }
+
+    .btn span { display: none; }
+    .btn { padding: 8px 10px; }
+
+    .contact-grid { grid-template-columns: 1fr; }
+    .ps-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .modal { padding: 20px; }
+    .form-actions { flex-wrap: wrap; }
+
+    .search-bar { max-width: 100%; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .stat-value { font-size: 24px; }
+    .ps-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.4; }
+  .empty-state-text { font-size: 14px; }
+
+  /* ─── TOGGLE ─── */
+  .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+
+  .toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    background: var(--muted2);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background var(--transition);
+    flex-shrink: 0;
+  }
+
+  .toggle.on { background: var(--accent); }
+
+  .toggle::after {
+    content: ''; position: absolute;
+    left: 3px; top: 3px;
+    width: 16px; height: 16px;
+    background: white; border-radius: 50%;
+    transition: transform var(--transition);
+  }
+
+  .toggle.on::after { transform: translateX(18px); }
+
+  .toggle-label { font-size: 12.5px; color: var(--muted); }
+
+  /* ─── TAGS INPUT ─── */
+  .tags-input-wrap {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--card-border);
+    border-radius: 9px;
+    padding: 8px 10px;
+    cursor: text;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .tags-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,245,195,0.1); }
+
+  .tags-input-wrap .tag-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 9px; border-radius: 6px;
+    background: rgba(0,245,195,0.12); color: var(--accent);
+    font-size: 11.5px; border: 1px solid rgba(0,245,195,0.2);
+  }
+
+  .tags-input-wrap .tag-chip .rm { cursor: pointer; opacity: 0.7; }
+  .tags-input-wrap .tag-chip .rm:hover { opacity: 1; color: var(--red); }
+  .tags-input-wrap input { background: none; border: none; box-shadow: none; width: 120px; padding: 2px 4px; font-size: 13px; min-width: 80px; flex: 1; }
+  .tags-input-wrap input:focus { outline: none; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--muted2); border-radius: 4px; }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 </style>
 </head>
 <body>
 
-<!-- ══════════ LOGIN ══════════ -->
-<div id="login-screen">
-  <div class="login-wrap">
-    <div class="login-box">
-      <div class="login-mark">Y</div>
-      <div class="login-title">yuva.admin</div>
-      <div class="login-sub">Portfolio Control Panel</div>
-      <label class="form-label">Admin Password</label>
-      <div class="login-input-wrap">
-        <input type="password" id="lpw" placeholder="Enter password…"
-          onkeydown="if(event.key==='Enter')doLogin()"/>
-        <button class="pw-toggle" onclick="togglePw()" id="pwtoggle">👁</button>
-      </div>
-      <button class="btn-login" onclick="doLogin()">Enter Dashboard →</button>
-      <div class="login-hint">Default: <code>yuva2025</code> — change in JS</div>
-      <div class="login-err" id="lerr">⚠ Wrong password. Try again.</div>
-    </div>
-  </div>
-</div>
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-<!-- ══════════ APP ══════════ -->
-<div id="app">
-
-  <!-- Mobile topbar -->
-  <div class="mobile-topbar" id="mobile-topbar">
-    <div class="mobile-brand">yuva<span>.</span>admin</div>
-    <button class="hamburger" id="hamburger" onclick="toggleSidebar()">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-brand">
-      <div class="sb-logo">Y</div>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">PM</div>
       <div>
-        <div class="sb-name">yuva<span>.</span>admin</div>
-        <div class="sb-tag">contact@yuvarajp.in</div>
+        <div class="logo-text">PortfolioCMS</div>
+        <div class="logo-sub">COMMAND CENTER</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">⚡</span> Dashboard
+    </div>
+
+    <div class="nav-section-label">Sections</div>
+    <div class="nav-item" onclick="navigate('works')">
+      <span class="nav-icon">🚀</span> Works
+    </div>
+    <div class="nav-item" onclick="navigate('experience')">
+      <span class="nav-icon">💼</span> Experience
+    </div>
+    <div class="nav-item" onclick="navigate('study')">
+      <span class="nav-icon">🎓</span> Study
+    </div>
+    <div class="nav-item" onclick="navigate('problemsolving')">
+      <span class="nav-icon">🧩</span> Problem Solving
+    </div>
+    <div class="nav-item" onclick="navigate('techstack')">
+      <span class="nav-icon">⚙️</span> Tech Stack
+    </div>
+    <div class="nav-item" onclick="navigate('underdevelopment')">
+      <span class="nav-icon">🔧</span> Under Development
+    </div>
+    <div class="nav-item" onclick="navigate('blog')">
+      <span class="nav-icon">📝</span> Blog
+      <span class="nav-badge" id="draftBadge">0</span>
+    </div>
+    <div class="nav-item" onclick="navigate('contact')">
+      <span class="nav-icon">📡</span> Contact
+    </div>
+
+    <div class="nav-section-label">System</div>
+    <div class="nav-item" onclick="navigate('settings')">
+      <span class="nav-icon">🛠</span> Settings
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-profile">
+      <div class="profile-avatar" id="avatarInitials">YN</div>
+      <div class="profile-info">
+        <div class="profile-name" id="sidebarName">Your Name</div>
+        <div class="profile-role" id="sidebarRole">Full Stack Dev</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header class="header">
+  <button class="hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="page-title" id="headerTitle">Dashboard <span>/ Overview</span></div>
+  <div class="header-actions">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;">
+      <div class="pulse-dot"></div> Live
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="syncToCloudflare()">
+      ☁ <span>Sync to CF</span>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- ── DASHBOARD ── -->
+  <div class="page active" id="page-dashboard">
+    <div class="deploy-bar">
+      <div class="pulse-dot"></div>
+      <div class="deploy-label">Cloudflare Workers · D1 Database</div>
+      <div class="deploy-status">● Deployed & Live</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace" id="lastSyncTime">Last sync: never</div>
+    </div>
+
+    <div class="stats-grid" id="dashboardStats">
+      <div class="stat-card">
+        <div class="stat-label">Projects</div>
+        <div class="stat-value"><span id="statProjects">0</span></div>
+        <div class="stat-icon">🚀</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Experience</div>
+        <div class="stat-value"><span id="statExp">0</span></div>
+        <div class="stat-icon">💼</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Blog Posts</div>
+        <div class="stat-value"><span id="statBlogs">0</span></div>
+        <div class="stat-icon">📝</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tech Skills</div>
+        <div class="stat-value"><span id="statSkills">0</span></div>
+        <div class="stat-icon">⚙️</div>
       </div>
     </div>
 
-    <div class="sb-section-label">Overview</div>
-    <button class="nav-item active" data-s="dashboard" onclick="nav('dashboard');closeSidebar()">
-      <span class="ni-icon">⬡</span><span class="ni-label">Dashboard</span>
-    </button>
-
-    <div class="sb-section-label">Portfolio Sections</div>
-    <button class="nav-item" data-s="works" onclick="nav('works');closeSidebar()">
-      <span class="ni-icon">◈</span><span class="ni-label">Works / Projects</span>
-    </button>
-    <button class="nav-item" data-s="experience" onclick="nav('experience');closeSidebar()">
-      <span class="ni-icon">◎</span><span class="ni-label">Experience</span>
-    </button>
-    <button class="nav-item" data-s="study" onclick="nav('study');closeSidebar()">
-      <span class="ni-icon">◷</span><span class="ni-label">Education</span>
-    </button>
-    <button class="nav-item" data-s="techstack" onclick="nav('techstack');closeSidebar()">
-      <span class="ni-icon">⬡</span><span class="ni-label">Tech Stack</span>
-    </button>
-    <button class="nav-item" data-s="problemsolving" onclick="nav('problemsolving');closeSidebar()">
-      <span class="ni-icon">◈</span><span class="ni-label">Problem Solving</span>
-    </button>
-    <button class="nav-item" data-s="wip" onclick="nav('wip');closeSidebar()">
-      <span class="ni-icon">◌</span><span class="ni-label">Under Development</span>
-    </button>
-    <button class="nav-item" data-s="blog" onclick="nav('blog');closeSidebar()">
-      <span class="ni-icon">✏</span><span class="ni-label">Blog</span>
-    </button>
-    <button class="nav-item" data-s="contact" onclick="nav('contact');closeSidebar()">
-      <span class="ni-icon">📬</span><span class="ni-label">Contact Inbox</span>
-      <span class="ni-badge" id="unread-badge" style="display:none">0</span>
-    </button>
-
-    <div class="sb-section-label">Settings</div>
-    <button class="nav-item" data-s="settings" onclick="nav('settings');closeSidebar()">
-      <span class="ni-icon">⚙</span><span class="ni-label">Settings</span>
-    </button>
-
-    <div class="sb-footer">
-      <div class="sb-user">
-        <div class="sb-avatar">YP</div>
-        <div>
-          <div class="sb-uname">Yuvaraj P</div>
-          <div class="sb-uemail">contact@yuvarajp.in</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="doLogout()">⏻ &nbsp;Log Out</button>
+    <div class="section-header">
+      <div class="section-title">Recent Activity</div>
     </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div class="tb-left">
-        <div class="tb-title" id="tb-title">Dashboard</div>
-      </div>
-      <div class="tb-right">
-        <a href="https://www.yuvarajpandian.in/" target="_blank" class="btn-view-portfolio">
-          <span>↗</span> View Portfolio
-        </a>
-        <div class="tb-avatar">YP</div>
+    <div id="activityFeed" style="display:flex;flex-direction:column;gap:10px;">
+      <div class="blog-item" style="padding:14px 18px;">
+        <div style="font-size:18px;">👋</div>
+        <div style="font-size:13px;color:var(--muted);">Welcome to your Portfolio CMS. Start adding content using the sidebar sections.</div>
       </div>
     </div>
+  </div>
 
-    <div class="content">
-
-      <!-- ══ DASHBOARD ══ -->
-      <div class="page active" id="page-dashboard">
-        <div class="page-header">
-          <div>
-            <h1>Welcome back, Yuvaraj 👋</h1>
-            <p id="dash-time" style="color:var(--muted);font-size:13px;margin-top:4px"></p>
-          </div>
-        </div>
-        <div class="stats-grid" id="stats-grid"></div>
-        <div class="page-header" style="margin-bottom:12px">
-          <div><h1 style="font-size:16px;font-weight:700">Quick Actions</h1></div>
-        </div>
-        <div class="qa-grid">
-          <div class="qa-card" onclick="nav('works')"><span class="qa-icon">+</span>Add Project</div>
-          <div class="qa-card" onclick="nav('blog')"><span class="qa-icon">✏</span>Write Blog</div>
-          <div class="qa-card" onclick="nav('techstack')"><span class="qa-icon">⬡</span>Update Skills</div>
-          <div class="qa-card" onclick="nav('contact')"><span class="qa-icon">📬</span>Check Messages</div>
-          <div class="qa-card" onclick="nav('wip')"><span class="qa-icon">🔧</span>WIP Projects</div>
-          <div class="qa-card" onclick="exportAll()"><span class="qa-icon">⬇</span>Export Backup</div>
-          <div class="qa-card" onclick="importBackup()"><span class="qa-icon">⬆</span>Import Backup</div>
-          <div class="qa-card" onclick="showBridgeInfo()"><span class="qa-icon">🔗</span>Portfolio Bridge</div>
-        </div>
-        <div id="bridge-banner-wrap"></div>
+  <!-- ── WORKS ── -->
+  <div class="page" id="page-works">
+    <div class="section-header">
+      <div class="section-title">Works <span>/ Projects</span></div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <div class="search-bar"><input type="text" placeholder="Search projects…" oninput="filterItems('works', this.value)"></div>
+        <button class="btn btn-primary" onclick="openModal('worksModal')">+ <span>Add Project</span></button>
       </div>
+    </div>
+    <div class="card-grid" id="worksList"></div>
+  </div>
 
-      <!-- ══ WORKS ══ -->
-      <div class="page" id="page-works">
-        <div class="page-header">
-          <div><h1>Works / Projects</h1><p>Manage your portfolio projects</p></div>
-          <button class="btn-primary" onclick="openModal('works')">+ Add Project</button>
-        </div>
-        <div class="table-card">
-          <div class="table-toolbar">
-            <div class="search-wrap">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-              <input type="text" placeholder="Search projects…" oninput="filterTbl('works-tb',this.value)"/>
-            </div>
-            <span class="tbl-count" id="works-count"></span>
-          </div>
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Title</th><th>Tech</th><th>Status</th><th>Links</th><th>Actions</th>
-            </tr></thead><tbody id="works-tb"></tbody></table>
-          </div>
-        </div>
+  <!-- ── EXPERIENCE ── -->
+  <div class="page" id="page-experience">
+    <div class="section-header">
+      <div class="section-title">Experience <span>/ Work History</span></div>
+      <button class="btn btn-primary" onclick="openModal('expModal')">+ <span>Add Role</span></button>
+    </div>
+    <div class="timeline" id="expList"></div>
+  </div>
+
+  <!-- ── STUDY ── -->
+  <div class="page" id="page-study">
+    <div class="section-header">
+      <div class="section-title">Study <span>/ Education</span></div>
+      <button class="btn btn-primary" onclick="openModal('studyModal')">+ <span>Add Entry</span></button>
+    </div>
+    <div class="card-grid" id="studyList"></div>
+  </div>
+
+  <!-- ── PROBLEM SOLVING ── -->
+  <div class="page" id="page-problemsolving">
+    <div class="section-header">
+      <div class="section-title">Problem Solving <span>/ Competitive</span></div>
+      <button class="btn btn-primary" onclick="openModal('psModal')">+ <span>Add Platform</span></button>
+    </div>
+    <div class="ps-grid" id="psList"></div>
+  </div>
+
+  <!-- ── TECH STACK ── -->
+  <div class="page" id="page-techstack">
+    <div class="section-header">
+      <div class="section-title">Tech Stack <span>/ Skills</span></div>
+      <button class="btn btn-primary" onclick="openModal('techModal')">+ <span>Add Skill</span></button>
+    </div>
+    <div id="techStackList"></div>
+  </div>
+
+  <!-- ── UNDER DEVELOPMENT ── -->
+  <div class="page" id="page-underdevelopment">
+    <div class="section-header">
+      <div class="section-title">Under Development <span>/ WIP</span></div>
+      <button class="btn btn-primary" onclick="openModal('wipModal')">+ <span>Add WIP</span></button>
+    </div>
+    <div class="card-grid" id="wipList"></div>
+  </div>
+
+  <!-- ── BLOG ── -->
+  <div class="page" id="page-blog">
+    <div class="section-header">
+      <div class="section-title">Blog <span>/ Posts</span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <select onchange="filterBlog(this.value)" style="width:auto;padding:8px 12px;font-size:13px;">
+          <option value="all">All Categories</option>
+          <option value="engineering">Engineering</option>
+          <option value="qa">QA / Testing</option>
+          <option value="content">Content</option>
+          <option value="career">Career</option>
+        </select>
+        <button class="btn btn-primary" onclick="openModal('blogModal')">+ <span>New Post</span></button>
       </div>
+    </div>
+    <div class="blog-list" id="blogList"></div>
+  </div>
 
-      <!-- ══ EXPERIENCE ══ -->
-      <div class="page" id="page-experience">
-        <div class="page-header">
-          <div><h1>Experience</h1><p>Work, internships & club roles</p></div>
-          <button class="btn-primary" onclick="openModal('experience')">+ Add Experience</button>
+  <!-- ── CONTACT ── -->
+  <div class="page" id="page-contact">
+    <div class="section-header">
+      <div class="section-title">Contact <span>/ Links</span></div>
+      <button class="btn btn-primary" onclick="openModal('contactModal')">+ <span>Add Link</span></button>
+    </div>
+    <div class="contact-grid" id="contactList"></div>
+  </div>
+
+  <!-- ── SETTINGS ── -->
+  <div class="page" id="page-settings">
+    <div class="section-title" style="margin-bottom:24px;">Settings <span style="color:var(--accent)">/ Config</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;">
+      <div class="tech-category">
+        <div class="tech-category-header">
+          <div class="tech-category-title">🙋 Personal Info</div>
         </div>
-        <div class="table-card">
-          <div class="table-toolbar">
-            <div class="search-wrap">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-              <input type="text" placeholder="Search…" oninput="filterTbl('exp-tb',this.value)"/>
-            </div>
-            <span class="tbl-count" id="exp-count"></span>
-          </div>
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Organization</th><th>Role</th><th>Duration</th><th>Type</th><th>Actions</th>
-            </tr></thead><tbody id="exp-tb"></tbody></table>
-          </div>
-        </div>
+        <div class="form-row"><label>Full Name</label><input type="text" id="settingName" placeholder="Your Name" oninput="updateSidebarProfile()"></div>
+        <div class="form-row"><label>Role / Title</label><input type="text" id="settingRole" placeholder="Full Stack Developer" oninput="updateSidebarProfile()"></div>
+        <div class="form-row"><label>Portfolio URL</label><input type="text" id="settingUrl" placeholder="https://yourdomain.pages.dev"></div>
+        <div class="form-row"><label>Cloudflare Worker API URL</label><input type="text" id="settingApi" placeholder="https://your-worker.workers.dev/api"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="saveSettings()">Save Settings</button>
       </div>
-
-      <!-- ══ STUDY ══ -->
-      <div class="page" id="page-study">
-        <div class="page-header">
-          <div><h1>Education</h1><p>Academic background</p></div>
-          <button class="btn-primary" onclick="openModal('study')">+ Add Education</button>
+      <div class="tech-category">
+        <div class="tech-category-header">
+          <div class="tech-category-title">☁️ Cloudflare D1 Info</div>
         </div>
-        <div class="table-card">
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Institution</th><th>Degree / Level</th><th>Year</th><th>Grade</th><th>Actions</th>
-            </tr></thead><tbody id="study-tb"></tbody></table>
-          </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8;font-family:'Space Mono',monospace;">
+          <p>Database: <span style="color:var(--accent)">portfolio-d1</span></p>
+          <p>Region: <span style="color:var(--accent)">Auto</span></p>
+          <p>Tables: works, experience, study, ps, tech, wip, blog, contact</p>
+          <br>
+          <p style="color:var(--muted2)">All changes sync via your Cloudflare Worker API endpoint. Set the API URL above to enable live sync.</p>
         </div>
+        <button class="btn btn-ghost" style="width:100%;margin-top:14px;" onclick="testConnection()">Test Connection</button>
       </div>
-
-      <!-- ══ TECH STACK ══ -->
-      <div class="page" id="page-techstack">
-        <div class="page-header">
-          <div><h1>Tech Stack</h1><p>Skills & proficiency levels</p></div>
-          <button class="btn-primary" onclick="openModal('techstack')">+ Add Skill</button>
+      <div class="tech-category">
+        <div class="tech-category-header">
+          <div class="tech-category-title">🗄️ Local Data</div>
         </div>
-        <div class="table-card">
-          <div class="table-toolbar">
-            <div class="search-wrap">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-              <input type="text" placeholder="Search skills…" oninput="filterTbl('tech-tb',this.value)"/>
-            </div>
-          </div>
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Skill</th><th>Category</th><th>Proficiency</th><th>Actions</th>
-            </tr></thead><tbody id="tech-tb"></tbody></table>
-          </div>
-        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Data is stored locally (localStorage) and synced to Cloudflare D1 via Worker API when you hit "Sync to CF".</div>
+        <button class="btn btn-ghost" style="width:100%;margin-bottom:8px;" onclick="exportData()">Export JSON Backup</button>
+        <button class="btn btn-danger" style="width:100%;" onclick="clearAllData()">Reset All Data</button>
       </div>
+    </div>
+  </div>
 
-      <!-- ══ PROBLEM SOLVING ══ -->
-      <div class="page" id="page-problemsolving">
-        <div class="page-header">
-          <div><h1>Problem Solving</h1><p>Competitive programming profiles</p></div>
-          <button class="btn-primary" onclick="openModal('problemsolving')">+ Add Platform</button>
-        </div>
-        <div class="table-card">
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Platform</th><th>Username</th><th>Solved</th><th>URL</th><th>Actions</th>
-            </tr></thead><tbody id="ps-tb"></tbody></table>
-          </div>
-        </div>
-      </div>
+</main>
 
-      <!-- ══ WIP ══ -->
-      <div class="page" id="page-wip">
-        <div class="page-header">
-          <div><h1>Under Development</h1><p>Work-in-progress projects</p></div>
-          <button class="btn-primary" onclick="openModal('wip')">+ Add WIP</button>
-        </div>
-        <div class="table-card">
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Project</th><th>Description</th><th>Progress</th><th>ETA</th><th>Actions</th>
-            </tr></thead><tbody id="wip-tb"></tbody></table>
-          </div>
-        </div>
-      </div>
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
 
-      <!-- ══ BLOG ══ -->
-      <div class="page" id="page-blog">
-        <div class="page-header">
-          <div>
-            <h1>Blog</h1>
-            <p>Published posts appear live at <code style="font-family:var(--font-m);font-size:11px;color:var(--green)">yuvarajpandian.in/#blog</code> via the bridge script</p>
-          </div>
-          <button class="btn-primary" onclick="openModal('blog')">+ New Post</button>
-        </div>
-        <div class="table-card">
-          <div class="table-toolbar">
-            <div class="search-wrap">
-              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
-              <input type="text" placeholder="Search posts…" oninput="filterTbl('blog-tb',this.value)"/>
-            </div>
-            <span class="tbl-count" id="blog-count"></span>
-          </div>
-          <div class="tbl-outer">
-            <table><thead><tr>
-              <th>Title</th><th>Tags</th><th>Status</th><th>Date</th><th>Actions</th>
-            </tr></thead><tbody id="blog-tb"></tbody></table>
-          </div>
-        </div>
-      </div>
+<!-- ════════════════ MODALS ════════════════ -->
 
-      <!-- ══ CONTACT ══ -->
-      <div class="page" id="page-contact">
-        <div class="page-header">
-          <div>
-            <h1>Contact Inbox</h1>
-            <p>Messages submitted through your portfolio contact form</p>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn-secondary" onclick="markAllRead()">✓ Mark All Read</button>
-            <button class="btn-secondary" onclick="clearReadMsgs()" style="color:var(--red)">🗑 Clear Read</button>
-          </div>
-        </div>
-        <div class="contact-list" id="contact-list"></div>
-      </div>
-
-      <!-- ══ SETTINGS ══ -->
-      <div class="page" id="page-settings">
-        <div class="page-header">
-          <div><h1>Settings</h1><p>Admin configuration & data management</p></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:14px;max-width:600px">
-
-          <div class="table-card" style="padding:22px 24px">
-            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">🔑 Change Password</h3>
-            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">Password is stored in code. Edit <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">ADMIN_PW</code> in the HTML file to change it.</p>
-          </div>
-
-          <div class="table-card" style="padding:22px 24px">
-            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">📦 Data Management</h3>
-            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">Export your data as JSON backup or import a previous backup. Data is stored in your browser's localStorage.</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn-primary" onclick="exportAll()">⬇ Export Backup</button>
-              <button class="btn-secondary" onclick="importBackup()">⬆ Import Backup</button>
-              <button class="btn-secondary" style="color:var(--red)" onclick="clearAllData()">🗑 Clear All Data</button>
-            </div>
-          </div>
-
-          <div class="table-card" style="padding:22px 24px">
-            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">🔗 Portfolio Bridge Script</h3>
-            <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;line-height:1.6">
-              Add this <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">&lt;script&gt;</code> tag to your portfolio's HTML to make blog posts and contact messages sync with this admin panel. Both files must be served from the <strong>same domain/device</strong> to share localStorage.
-            </p>
-            <pre id="bridge-code" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:14px;font-family:var(--font-m);font-size:11px;color:var(--green);overflow-x:auto;white-space:pre;line-height:1.6"></pre>
-            <button class="btn-secondary" style="margin-top:10px" onclick="copyBridgeCode()">📋 Copy Code</button>
-          </div>
-
-          <div class="table-card" style="padding:22px 24px">
-            <h3 style="font-family:var(--font-h);font-size:15px;margin-bottom:6px">📡 Real Sync Options</h3>
-            <p style="color:var(--muted);font-size:12.5px;line-height:1.6">
-              For cross-device sync (phone + laptop), upgrade the <code style="font-family:var(--font-m);font-size:11.5px;color:var(--green)">DB</code> layer to use Firebase Firestore — just replace the localStorage calls. See Dashboard → Portfolio Bridge for instructions.
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-    </div><!-- /content -->
-  </main>
-</div><!-- /app -->
-
-<!-- ══ MODAL ══ -->
-<div class="modal-ov" id="modal-ov">
+<!-- WORKS MODAL -->
+<div class="modal-overlay" id="worksModal">
   <div class="modal">
-    <div class="modal-head">
-      <h2 id="modal-title">Add Item</h2>
-      <button class="modal-x" onclick="closeModal()">×</button>
+    <div class="modal-header">
+      <div class="modal-title" id="worksModalTitle">Add Project</div>
+      <button class="modal-close" onclick="closeModal('worksModal')">✕</button>
     </div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-foot">
-      <button class="btn-cancel2" onclick="closeModal()">Cancel</button>
-      <button class="btn-save2" onclick="saveModal()">Save Changes →</button>
+    <input type="hidden" id="worksEditId">
+    <div class="form-row"><label>Project Title *</label><input type="text" id="worksTitle" placeholder="My Awesome Project"></div>
+    <div class="form-row-2">
+      <div><label>Category</label>
+        <select id="worksCategory">
+          <option value="Web App">Web App</option>
+          <option value="Mobile App">Mobile App</option>
+          <option value="API / Backend">API / Backend</option>
+          <option value="CLI Tool">CLI Tool</option>
+          <option value="Library">Library</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div><label>Status</label>
+        <select id="worksStatus">
+          <option value="live">Live</option>
+          <option value="wip">In Progress</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Description</label><textarea id="worksDesc" placeholder="Describe what this project does…"></textarea></div>
+    <div class="form-row"><label>Tech Used (comma-separated)</label><input type="text" id="worksTech" placeholder="React, Node.js, PostgreSQL"></div>
+    <div class="form-row-2">
+      <div><label>Live URL</label><input type="url" id="worksLive" placeholder="https://project.com"></div>
+      <div><label>GitHub URL</label><input type="url" id="worksGithub" placeholder="https://github.com/…"></div>
+    </div>
+    <div class="form-row"><label>Year</label><input type="text" id="worksYear" placeholder="2024"></div>
+    <div class="form-row"><label>Thumbnail / Image URL (optional)</label><input type="url" id="worksThumb" placeholder="https://…"></div>
+    <div class="form-row" style="display:flex;align-items:center;gap:12px;">
+      <label style="margin:0;">Featured</label>
+      <div class="toggle" id="worksFeaturedToggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('worksModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWork()">Save Project</button>
     </div>
   </div>
 </div>
 
-<!-- ══ CONFIRM ══ -->
-<div class="confirm-ov" id="confirm-ov">
-  <div class="confirm-box">
-    <div class="conf-icon">🗑</div>
-    <h3>Delete this item?</h3>
-    <p>This action cannot be undone. The item will be permanently removed.</p>
-    <div class="conf-btns">
-      <button class="btn-cancel2" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-conf-del" onclick="confirmDel()">Delete</button>
+<!-- EXPERIENCE MODAL -->
+<div class="modal-overlay" id="expModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Experience</div>
+      <button class="modal-close" onclick="closeModal('expModal')">✕</button>
+    </div>
+    <input type="hidden" id="expEditId">
+    <div class="form-row"><label>Role / Position *</label><input type="text" id="expRole" placeholder="Software Engineer"></div>
+    <div class="form-row"><label>Company *</label><input type="text" id="expCompany" placeholder="Acme Corp"></div>
+    <div class="form-row-2">
+      <div><label>Start Date</label><input type="text" id="expStart" placeholder="Jan 2022"></div>
+      <div><label>End Date</label><input type="text" id="expEnd" placeholder="Present"></div>
+    </div>
+    <div class="form-row"><label>Location</label><input type="text" id="expLocation" placeholder="Remote / Chennai, India"></div>
+    <div class="form-row"><label>Description</label><textarea id="expDesc" placeholder="Key responsibilities and achievements…"></textarea></div>
+    <div class="form-row"><label>Skills / Tech</label><input type="text" id="expSkills" placeholder="React, Node.js, AWS"></div>
+    <div class="form-row" style="display:flex;align-items:center;gap:12px;">
+      <label style="margin:0;">Current Role</label>
+      <div class="toggle on" id="expCurrentToggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('expModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveExp()">Save Experience</button>
     </div>
   </div>
 </div>
 
-<!-- hidden file input for import -->
-<input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)"/>
+<!-- STUDY MODAL -->
+<div class="modal-overlay" id="studyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Study Entry</div>
+      <button class="modal-close" onclick="closeModal('studyModal')">✕</button>
+    </div>
+    <input type="hidden" id="studyEditId">
+    <div class="form-row"><label>Title *</label><input type="text" id="studyTitle" placeholder="B.Tech Computer Science"></div>
+    <div class="form-row"><label>Institution *</label><input type="text" id="studyInstitution" placeholder="Anna University"></div>
+    <div class="form-row-2">
+      <div><label>Type</label>
+        <select id="studyType">
+          <option value="Degree">Degree</option>
+          <option value="Certification">Certification</option>
+          <option value="Course">Course</option>
+          <option value="Bootcamp">Bootcamp</option>
+          <option value="Self-taught">Self-taught</option>
+        </select>
+      </div>
+      <div><label>Year / Duration</label><input type="text" id="studyYear" placeholder="2020 – 2024"></div>
+    </div>
+    <div class="form-row"><label>Description / Notes</label><textarea id="studyDesc" placeholder="What you learned or achieved…"></textarea></div>
+    <div class="form-row"><label>Certificate / Credential URL</label><input type="url" id="studyLink" placeholder="https://…"></div>
+    <div class="form-row"><label>Score / Grade (optional)</label><input type="text" id="studyScore" placeholder="CGPA 8.5 / First Class"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('studyModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudy()">Save Entry</button>
+    </div>
+  </div>
+</div>
 
-<!-- ══ TOASTS ══ -->
-<div id="toasts"></div>
+<!-- PROBLEM SOLVING MODAL -->
+<div class="modal-overlay" id="psModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Platform</div>
+      <button class="modal-close" onclick="closeModal('psModal')">✕</button>
+    </div>
+    <input type="hidden" id="psEditId">
+    <div class="form-row"><label>Platform Name *</label><input type="text" id="psPlatform" placeholder="LeetCode"></div>
+    <div class="form-row-2">
+      <div><label>Problems Solved</label><input type="number" id="psSolved" placeholder="250"></div>
+      <div><label>Rank / Rating</label><input type="text" id="psRank" placeholder="Top 5%"></div>
+    </div>
+    <div class="form-row"><label>Profile URL</label><input type="url" id="psUrl" placeholder="https://leetcode.com/username"></div>
+    <div class="form-row"><label>Badge / Achievement (optional)</label><input type="text" id="psBadge" placeholder="Knight, 100 Days Streak…"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('psModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePS()">Save Platform</button>
+    </div>
+  </div>
+</div>
 
+<!-- TECH STACK MODAL -->
+<div class="modal-overlay" id="techModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Skill</div>
+      <button class="modal-close" onclick="closeModal('techModal')">✕</button>
+    </div>
+    <div class="form-row"><label>Skill Name *</label><input type="text" id="techName" placeholder="Next.js"></div>
+    <div class="form-row-2">
+      <div><label>Category</label>
+        <select id="techCategory">
+          <option value="backend">Backend Engineering</option>
+          <option value="frontend">Front End</option>
+          <option value="database">Database</option>
+          <option value="testing">Testing & Security</option>
+          <option value="cloud">Cloud</option>
+          <option value="tools">Tools</option>
+        </select>
+      </div>
+      <div><label>Proficiency</label>
+        <select id="techLevel">
+          <option value="Expert">Expert</option>
+          <option value="Advanced">Advanced</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Beginner">Beginner</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Icon / Emoji (optional)</label><input type="text" id="techIcon" placeholder="⚛️"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('techModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTech()">Add Skill</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIP MODAL -->
+<div class="modal-overlay" id="wipModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add WIP Project</div>
+      <button class="modal-close" onclick="closeModal('wipModal')">✕</button>
+    </div>
+    <input type="hidden" id="wipEditId">
+    <div class="form-row"><label>Project Name *</label><input type="text" id="wipName" placeholder="Secret Project X"></div>
+    <div class="form-row"><label>Description</label><textarea id="wipDesc" placeholder="What are you building?"></textarea></div>
+    <div class="form-row-2">
+      <div><label>Progress (%)</label><input type="number" id="wipProgress" min="0" max="100" placeholder="40"></div>
+      <div><label>ETA</label><input type="text" id="wipEta" placeholder="Q2 2025"></div>
+    </div>
+    <div class="form-row"><label>Tech Stack</label><input type="text" id="wipTech" placeholder="Rust, WebAssembly"></div>
+    <div class="form-row" style="display:flex;align-items:center;gap:12px;">
+      <label style="margin:0;">Visible on Portfolio</label>
+      <div class="toggle on" id="wipVisibleToggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('wipModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWip()">Save WIP</button>
+    </div>
+  </div>
+</div>
+
+<!-- BLOG MODAL -->
+<div class="modal-overlay" id="blogModal">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title" id="blogModalTitle">New Blog Post</div>
+      <button class="modal-close" onclick="closeModal('blogModal')">✕</button>
+    </div>
+    <input type="hidden" id="blogEditId">
+    <div class="form-row"><label>Title *</label><input type="text" id="blogTitle" placeholder="How I Built a Distributed System…"></div>
+    <div class="form-row-2">
+      <div><label>Category</label>
+        <select id="blogCategory">
+          <option value="engineering">Engineering</option>
+          <option value="qa">QA / Testing</option>
+          <option value="content">Content</option>
+          <option value="career">Career</option>
+        </select>
+      </div>
+      <div><label>Status</label>
+        <select id="blogStatus">
+          <option value="published">Published (Live)</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row"><label>Slug / URL</label><input type="text" id="blogSlug" placeholder="auto-generated-from-title"></div>
+    <div class="form-row"><label>Excerpt / Summary</label><textarea id="blogExcerpt" placeholder="A brief description for cards and SEO…" style="min-height:70px;"></textarea></div>
+    <div class="form-row"><label>Content (Markdown)</label><textarea id="blogContent" placeholder="# My Blog Post&#10;&#10;Write your content in Markdown…" style="min-height:160px;font-family:'Space Mono',monospace;font-size:12px;"></textarea></div>
+    <div class="form-row-2">
+      <div><label>Cover Image URL</label><input type="url" id="blogCover" placeholder="https://…"></div>
+      <div><label>Read Time (mins)</label><input type="number" id="blogReadTime" placeholder="5"></div>
+    </div>
+    <div class="form-row"><label>Tags (comma-separated)</label><input type="text" id="blogTags" placeholder="performance, nodejs, api"></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('blogModal')">Cancel</button>
+      <button class="btn btn-ghost" onclick="saveBlogDraft()">Save Draft</button>
+      <button class="btn btn-primary" onclick="publishBlog()">Publish Live</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Contact / Link</div>
+      <button class="modal-close" onclick="closeModal('contactModal')">✕</button>
+    </div>
+    <input type="hidden" id="contactEditId">
+    <div class="form-row"><label>Platform / Type *</label><input type="text" id="contactPlatform" placeholder="GitHub, LinkedIn, Email…"></div>
+    <div class="form-row"><label>Display Value *</label><input type="text" id="contactValue" placeholder="username or email address"></div>
+    <div class="form-row"><label>URL</label><input type="url" id="contactUrl" placeholder="https://…"></div>
+    <div class="form-row"><label>Icon / Emoji</label><input type="text" id="contactIcon" placeholder="🐙"></div>
+    <div class="form-row" style="display:flex;align-items:center;gap:12px;">
+      <label style="margin:0;">Primary Contact</label>
+      <div class="toggle" id="contactPrimaryToggle" onclick="this.classList.toggle('on')"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('contactModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveContact()">Save Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ SCRIPT ════════════════ -->
 <script>
-'use strict';
+// ─── STATE ───────────────────────────────────────────────────────────────────
+const DB_KEY = 'portfolioCMS_v1';
 
-/* ════════════════════════════════════════
-   CONFIG — CHANGE PASSWORD HERE
-════════════════════════════════════════ */
-const ADMIN_PW = 'yuva2025';
-const STORAGE_PREFIX = 'ypa_'; // shared with portfolio bridge
-
-/* ════════════════════════════════════════
-   AUTH
-════════════════════════════════════════ */
-function doLogin(){
-  const pw=_id('lpw').value.trim();
-  if(pw===ADMIN_PW){
-    sessionStorage.setItem('ypa_auth','1');
-    _id('login-screen').style.display='none';
-    _id('app').style.display='block';
-    initApp();
-  } else {
-    const err=_id('lerr');
-    err.style.display='block';
-    _id('lpw').style.borderColor='var(--red)';
-    _id('lpw').focus();
-    setTimeout(()=>{err.style.display='none';_id('lpw').style.borderColor='';},3500);
-  }
-}
-function doLogout(){
-  sessionStorage.removeItem('ypa_auth');
-  location.reload();
-}
-function togglePw(){
-  const i=_id('lpw');
-  const show=i.type==='password';
-  i.type=show?'text':'password';
-  _id('pwtoggle').textContent=show?'🙈':'👁';
-}
-// Auto-login if already authed
-if(sessionStorage.getItem('ypa_auth')){
-  _id('login-screen').style.display='none';
-  _id('app').style.display='block';
-}
-
-/* ════════════════════════════════════════
-   DB — localStorage with SHARED prefix
-   Portfolio bridge reads same keys
-════════════════════════════════════════ */
-const DB = {
-  get(k){ try{return JSON.parse(localStorage.getItem(STORAGE_PREFIX+k)||'[]')}catch{return[]} },
-  set(k,v){ localStorage.setItem(STORAGE_PREFIX+k,JSON.stringify(v)); fireEvent(k); },
-  add(k,item){
-    const items=this.get(k);
-    item.id='id_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-    item.createdAt=new Date().toISOString(); // ISO for correct sorting
-    items.push(item);
-    this.set(k,items);
-    return item;
+const defaultData = {
+  settings: { name: 'Your Name', role: 'Full Stack Developer', url: '', api: '' },
+  works: [],
+  experience: [],
+  study: [],
+  ps: [],
+  tech: {
+    backend: [], frontend: [], database: [], testing: [], cloud: [], tools: []
   },
-  update(k,id,data){
-    const items=this.get(k);
-    const i=items.findIndex(x=>x.id===id);
-    if(i>-1){
-      items[i]={...items[i],...data};
-      items[i].updatedAt=new Date().toISOString();
-    }
-    this.set(k,items);
-  },
-  del(k,id){ this.set(k,this.get(k).filter(x=>x.id!==id)); }
+  wip: [],
+  blog: [],
+  contact: []
 };
 
-// Fire storage event so portfolio page (same window in dev) can react
-function fireEvent(key){
-  try{
-    window.dispatchEvent(new StorageEvent('storage',{
-      key:STORAGE_PREFIX+key,
-      newValue:localStorage.getItem(STORAGE_PREFIX+key),
-      storageArea:localStorage
-    }));
-  }catch(e){}
+let data = JSON.parse(localStorage.getItem(DB_KEY) || 'null') || JSON.parse(JSON.stringify(defaultData));
+
+function save() {
+  localStorage.setItem(DB_KEY, JSON.stringify(data));
+  updateStats();
 }
 
-/* ════════════════════════════════════════
-   SEED DEMO DATA (only first time)
-════════════════════════════════════════ */
-function seedDemo(){
-  if(!DB.get('works').length){
-    DB.add('works',{title:'PSNA GPA & CGPA Calculator',desc:'A department-wise GPA/CGPA calculator for PSNA College students.',tech:'HTML, CSS, JavaScript',liveUrl:'https://psna-gpacalculator-yuva.netlify.app/',codeUrl:'',status:'live'});
-    DB.add('works',{title:'UiZera Club Website',desc:'Official site for the UiZera Club at PSNA College.',tech:'HTML, CSS, JavaScript',liveUrl:'https://psna-uizera.netlify.app/',codeUrl:'',status:'live'});
-    DB.add('works',{title:'Shopsy App UI Clone',desc:'Replicated Shopsy e-commerce mobile app UI in Figma.',tech:'Figma, UI/UX',liveUrl:'',codeUrl:'',status:'live'});
-  }
-  if(!DB.get('experience').length){
-    DB.add('experience',{org:'UiZera Club – PSNA College',role:'Graphics Designer',duration:'2025 – Present',type:'Club Role',desc:'Visual design and creative content for club activities.'});
-    DB.add('experience',{org:'Fine Arts Club – PSNA College',role:'EXCOM Member',duration:'2025 – Present',type:'Club Role',desc:'Event organization and artistic activities.'});
-  }
-  if(!DB.get('study').length){
-    DB.add('study',{institution:'PSNA College of Engineering and Technology',degree:'B.E. Computer Science and Business Systems',year:'2024 – Present',grade:'8.32 CGPA'});
-    DB.add('study',{institution:"St. Mary's Higher Secondary School, Dindigul",degree:'Higher Secondary (12th)',year:'2022 – 2024',grade:'81%'});
-    DB.add('study',{institution:"St. Micheal's High School, Dindigul",degree:'SSLC (10th)',year:'2022',grade:'86%'});
-  }
-  if(!DB.get('techstack').length){
-    [['HTML/CSS','Frontend',95],['JavaScript','Frontend',85],['Flutter','Mobile',50],['Python','Backend',75],['MongoDB','Database',70],['Git','Tools',85],['Figma','Design',80]].forEach(([n,c,p])=>DB.add('techstack',{name:n,category:c,proficiency:p}));
-  }
-  if(!DB.get('problemsolving').length){
-    DB.add('problemsolving',{platform:'LeetCode',username:'yuvaa-404',solved:'35+',url:'https://leetcode.com/yuvaa-404'});
-  }
-  if(!DB.get('wip').length){
-    DB.add('wip',{title:'AI/ML Personal Project',desc:'Exploring ML concepts and building a small prediction model.',progress:20,eta:'Q3 2025'});
-    DB.add('wip',{title:'Blockchain Experiment',desc:'Learning Solidity, building a simple DApp on testnet.',progress:10,eta:'Q4 2025'});
-  }
-  if(!DB.get('blog').length){
-    DB.add('blog',{title:"My First Hackathon — PERI CREATECH'25",tags:'hackathon, teamwork, learning',status:'published',content:"I recently participated in my first Project Expo — PERI CREATECH'25 — hosted by PERI Institute of Technology, Chennai. It was a great learning experience representing PSNA College of Engineering and Technology."});
-  }
-  // contact starts empty (populated by portfolio form)
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-/* ════════════════════════════════════════
-   ROUTING
-════════════════════════════════════════ */
-const PAGE_TITLES={
-  dashboard:'Dashboard',works:'Works / Projects',experience:'Experience',
-  study:'Education',techstack:'Tech Stack',problemsolving:'Problem Solving',
-  wip:'Under Development',blog:'Blog',contact:'Contact Inbox',settings:'Settings'
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+const pageTitles = {
+  dashboard: ['Dashboard', '/ Overview'],
+  works: ['Works', '/ Projects'],
+  experience: ['Experience', '/ Work History'],
+  study: ['Study', '/ Education'],
+  problemsolving: ['Problem Solving', '/ Competitive'],
+  techstack: ['Tech Stack', '/ Skills'],
+  underdevelopment: ['Under Development', '/ WIP'],
+  blog: ['Blog', '/ Posts'],
+  contact: ['Contact', '/ Links'],
+  settings: ['Settings', '/ Config']
 };
 
-function nav(s){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const pg=_id('page-'+s);
-  if(pg) pg.classList.add('active');
-
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const ni=document.querySelector(`[data-s="${s}"]`);
-  if(ni) ni.classList.add('active');
-
-  const t=PAGE_TITLES[s]||s;
-  _id('tb-title').textContent=t;
-
-  // update mobile topbar title if present
-  const mt=document.querySelector('.mobile-topbar .mobile-brand');
-  if(mt) mt.innerHTML=`yuva<span style="color:var(--accent)">.</span>${s==='dashboard'?'admin':s}`;
-
-  renderSection(s);
-  window.scrollTo(0,0);
-}
-
-function renderSection(s){
-  ({dashboard:renderDash,works:renderWorks,experience:renderExp,
-    study:renderStudy,techstack:renderTech,problemsolving:renderPS,
-    wip:renderWIP,blog:renderBlog,contact:renderContact,
-    settings:renderSettings}[s]||(() => {}))();
-}
-
-/* ════════════════════════════════════════
-   MOBILE SIDEBAR
-════════════════════════════════════════ */
-function toggleSidebar(){
-  const sb=_id('sidebar'),ov=_id('sb-overlay'),hb=_id('hamburger');
-  const open=sb.classList.toggle('open');
-  ov.classList.toggle('open',open);
-  hb.classList.toggle('open',open);
-  document.body.style.overflow=open?'hidden':'';
-}
-function closeSidebar(){
-  _id('sidebar').classList.remove('open');
-  _id('sb-overlay').classList.remove('open');
-  _id('hamburger').classList.remove('open');
-  document.body.style.overflow='';
-}
-
-/* ════════════════════════════════════════
-   DASHBOARD
-════════════════════════════════════════ */
-function renderDash(){
-  // Update time
-  _id('dash-time').textContent='Today is '+new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-
-  const unread=DB.get('contact').filter(c=>!c.read).length;
-  const stats=[
-    {icon:'◈',val:DB.get('works').length,label:'Projects',sub:'in portfolio'},
-    {icon:'◎',val:DB.get('experience').length,label:'Experiences',sub:'roles & internships'},
-    {icon:'⬡',val:DB.get('techstack').length,label:'Skills',sub:'in tech stack'},
-    {icon:'✏',val:DB.get('blog').filter(b=>b.status==='published').length+' / '+DB.get('blog').length,label:'Blog Posts',sub:'published / total'},
-    {icon:'◌',val:DB.get('wip').length,label:'WIP Projects',sub:'under development'},
-    {icon:'📬',val:unread,label:'Unread Msgs',sub:'in inbox'},
-  ];
-  _id('stats-grid').innerHTML=stats.map(s=>`
-    <div class="stat-card">
-      <div class="sc-icon">${s.icon}</div>
-      <div class="sc-val">${s.val}</div>
-      <div class="sc-label">${s.label}</div>
-      <div class="sc-sub">${s.sub}</div>
-    </div>`).join('');
-  updateBadge();
-}
-
-function updateBadge(){
-  const n=DB.get('contact').filter(c=>!c.read).length;
-  const b=_id('unread-badge');
-  if(b){b.textContent=n;b.style.display=n?'inline':'none';}
-}
-
-/* ════════════════════════════════════════
-   WORKS
-════════════════════════════════════════ */
-function renderWorks(){
-  const items=DB.get('works');
-  _id('works-count').textContent=items.length+' project'+(items.length!==1?'s':'');
-  const tb=_id('works-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  tb.innerHTML=items.map(w=>`
-    <tr data-s="${esc((w.title+w.tech).toLowerCase())}">
-      <td>
-        <div style="font-weight:600">${esc(w.title)}</div>
-        <div style="color:var(--muted);font-size:12px;margin-top:2px">${esc(w.desc.slice(0,65))}${w.desc.length>65?'…':''}</div>
-      </td>
-      <td>${w.tech.split(',').map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</td>
-      <td><span class="pill ${w.status==='live'?'live':'wip'}">${w.status}</span></td>
-      <td>${w.liveUrl?`<a href="${w.liveUrl}" target="_blank" style="color:var(--green);font-size:12.5px;font-weight:500">Live ↗</a>`:'<span style="color:var(--muted2)">—</span>'}</td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('works','${w.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('works','${w.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   EXPERIENCE
-════════════════════════════════════════ */
-function renderExp(){
-  const items=DB.get('experience');
-  _id('exp-count').textContent=items.length+' entr'+(items.length===1?'y':'ies');
-  const tb=_id('exp-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  tb.innerHTML=items.map(e=>`
-    <tr data-s="${esc((e.org+e.role).toLowerCase())}">
-      <td style="font-weight:600">${esc(e.org)}</td>
-      <td>${esc(e.role)}</td>
-      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(e.duration)}</td>
-      <td><span class="tag y">${esc(e.type)}</span></td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('experience','${e.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('experience','${e.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   STUDY
-════════════════════════════════════════ */
-function renderStudy(){
-  const items=DB.get('study');
-  const tb=_id('study-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  tb.innerHTML=items.map(s=>`
-    <tr>
-      <td style="font-weight:600">${esc(s.institution)}</td>
-      <td>${esc(s.degree)}</td>
-      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(s.year)}</td>
-      <td><span class="tag g">${esc(s.grade)}</span></td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('study','${s.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('study','${s.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   TECH STACK
-════════════════════════════════════════ */
-function renderTech(){
-  const items=DB.get('techstack');
-  const tb=_id('tech-tb');
-  if(!items.length){tb.innerHTML=emptyRow(4);return;}
-  tb.innerHTML=items.map(t=>`
-    <tr data-s="${esc((t.name+t.category).toLowerCase())}">
-      <td style="font-weight:600">${esc(t.name)}</td>
-      <td><span class="tag">${esc(t.category)}</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="skill-bar"><div class="skill-fill" style="width:${t.proficiency}%"></div></div>
-          <span style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${t.proficiency}%</span>
-        </div>
-      </td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('techstack','${t.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('techstack','${t.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   PROBLEM SOLVING
-════════════════════════════════════════ */
-function renderPS(){
-  const items=DB.get('problemsolving');
-  const tb=_id('ps-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  tb.innerHTML=items.map(p=>`
-    <tr>
-      <td style="font-weight:600">${esc(p.platform)}</td>
-      <td style="font-family:var(--font-m);font-size:12.5px">${esc(p.username)}</td>
-      <td><span class="tag g">${esc(p.solved)} solved</span></td>
-      <td>${p.url?`<a href="${p.url}" target="_blank" style="color:var(--green);font-size:12.5px">Profile ↗</a>`:'<span style="color:var(--muted2)">—</span>'}</td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('problemsolving','${p.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('problemsolving','${p.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   WIP
-════════════════════════════════════════ */
-function renderWIP(){
-  const items=DB.get('wip');
-  const tb=_id('wip-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  tb.innerHTML=items.map(w=>`
-    <tr>
-      <td style="font-weight:600">${esc(w.title)}</td>
-      <td style="color:var(--muted);font-size:13px;max-width:220px">${esc(w.desc)}</td>
-      <td style="min-width:150px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="prog-bar"><div class="prog-fill" style="width:${w.progress}%"></div></div>
-          <span style="font-family:var(--font-m);font-size:12px;color:var(--muted);white-space:nowrap">${w.progress}%</span>
-        </div>
-      </td>
-      <td style="font-family:var(--font-m);font-size:12px;color:var(--muted)">${esc(w.eta)}</td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('wip','${w.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('wip','${w.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   BLOG — FIX: correct date + published filter
-════════════════════════════════════════ */
-function renderBlog(){
-  const items=DB.get('blog');
-  const pub=items.filter(b=>b.status==='published').length;
-  _id('blog-count').textContent=`${pub} published / ${items.length} total`;
-  const tb=_id('blog-tb');
-  if(!items.length){tb.innerHTML=emptyRow(5);return;}
-  // Sort: newest first
-  const sorted=[...items].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  tb.innerHTML=sorted.map(b=>`
-    <tr data-s="${esc((b.title+(b.tags||'')).toLowerCase())}">
-      <td style="font-weight:600;max-width:200px">${esc(b.title)}</td>
-      <td>${(b.tags||'').split(',').filter(Boolean).map(t=>`<span class="tag">${esc(t.trim())}</span>`).join('')}</td>
-      <td><span class="pill ${b.status}">${b.status}</span></td>
-      <td style="font-family:var(--font-m);font-size:11.5px;color:var(--muted);white-space:nowrap">${fmtDate(b.createdAt)}</td>
-      <td class="td-act">
-        <button class="btn-edit2" onclick="openModal('blog','${b.id}')">Edit</button>
-        <button class="btn-del2" onclick="askDel('blog','${b.id}')">Delete</button>
-      </td>
-    </tr>`).join('');
-}
-
-/* ════════════════════════════════════════
-   CONTACT — FIX: real timestamps, correct unread
-════════════════════════════════════════ */
-function renderContact(){
-  const items=[...DB.get('contact')].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-  const list=_id('contact-list');
-  if(!items.length){
-    list.innerHTML=`<div class="empty-state"><div class="es-icon">📭</div><p class="es-text">No messages yet. Messages sent via your portfolio contact form will appear here.</p></div>`;
-    updateBadge();return;
-  }
-  list.innerHTML=items.map(c=>`
-    <div class="cc ${c.read?'':'unread'}" id="cc-${c.id}">
-      <div class="cc-dot ${c.read?'r':''}"></div>
-      <div class="cc-body">
-        <div class="cc-row1">
-          <span class="cc-name">${esc(c.name)}</span>
-          <span class="cc-email">${esc(c.email)}</span>
-          <span class="cc-time">${fmtDate(c.createdAt)}</span>
-        </div>
-        <div class="cc-subject">${esc(c.subject||'(No subject)')}</div>
-        <div class="cc-msg">${esc(c.msg)}</div>
-        <div class="cc-acts">
-          <a href="mailto:${esc(c.email)}?subject=${encodeURIComponent('Re: '+(c.subject||''))}"
-             style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:7px;background:var(--accent-dim);color:var(--accent);font-size:12px;font-weight:600">Reply ↗</a>
-          ${!c.read?`<button class="btn-edit2" style="font-size:12px" onclick="markRead('${c.id}')">Mark Read</button>`:''}
-          <button class="btn-del2" style="font-size:12px" onclick="askDel('contact','${c.id}')">Delete</button>
-        </div>
-      </div>
-    </div>`).join('');
-  updateBadge();
-}
-
-function markRead(id){DB.update('contact',id,{read:true});renderContact();renderDash();}
-function markAllRead(){
-  DB.get('contact').forEach(c=>DB.update('contact',c.id,{read:true}));
-  renderContact();renderDash();toast('All messages marked as read','s');
-}
-function clearReadMsgs(){
-  const items=DB.get('contact').filter(c=>!c.read);
-  DB.set('contact',items);
-  renderContact();renderDash();toast('Read messages cleared','w');
-}
-
-/* ════════════════════════════════════════
-   SETTINGS PAGE
-════════════════════════════════════════ */
-function renderSettings(){
-  const code=getBridgeCode();
-  const el=_id('bridge-code');
-  if(el) el.textContent=code;
-}
-
-function getBridgeCode(){
-  return `<!-- Add this to your portfolio's index.html, before </body> -->
-<script>
-(function(){
-  var P='${STORAGE_PREFIX}';
-  // Read blog posts from admin panel
-  function getAdminData(key){
-    try{return JSON.parse(localStorage.getItem(P+key)||'[]');}catch{return [];}
-  }
-  // Submit contact form to admin inbox
-  window.submitToAdmin=function(name,email,subject,msg){
-    var items=getAdminData('contact');
-    items.push({id:'id_'+Date.now(),name:name,email:email,
-      subject:subject,msg:msg,read:false,
-      createdAt:new Date().toISOString()});
-    localStorage.setItem(P+'contact',JSON.stringify(items));
-    // Also fire storage event
-    window.dispatchEvent(new StorageEvent('storage',
-      {key:P+'contact',storageArea:localStorage}));
-    return true;
-  };
-  // Expose published blog posts
-  window.getAdminBlogs=function(){
-    return getAdminData('blog').filter(function(b){
-      return b.status==='published';
-    }).sort(function(a,b){
-      return new Date(b.createdAt)-new Date(a.createdAt);
-    });
-  };
-  // Expose all sections
-  window.getAdminSection=function(key){
-    return getAdminData(key);
-  };
-  window.adminDataReady=true;
-  window.dispatchEvent(new Event('adminReady'));
-})();
-<\/script>`;
-}
-
-function copyBridgeCode(){
-  navigator.clipboard.writeText(getBridgeCode()).then(()=>toast('Bridge code copied!','s')).catch(()=>toast('Copy failed — select manually','e'));
-}
-
-function showBridgeInfo(){
-  nav('settings');
-  setTimeout(()=>{
-    const el=document.querySelector('[data-s="settings"]');
-    if(el) el.scrollIntoView();
-  },200);
-}
-
-/* ════════════════════════════════════════
-   MODAL FORMS
-════════════════════════════════════════ */
-let _mSection='',_editId=null;
-
-const FORMS={
-  works:(d={})=>`
-    <div class="fg">
-      <div class="form-group"><label class="form-label">Project Title *</label>
-        <input id="f-title" value="${esc(d.title||'')}" placeholder="e.g. PSNA GPA Calculator"/></div>
-      <div class="form-group"><label class="form-label">Description</label>
-        <textarea id="f-desc" placeholder="Brief description…">${esc(d.desc||'')}</textarea></div>
-      <div class="form-group"><label class="form-label">Tech Stack (comma separated)</label>
-        <input id="f-tech" value="${esc(d.tech||'')}" placeholder="HTML, CSS, JavaScript"/></div>
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Live URL</label>
-          <input id="f-live" value="${esc(d.liveUrl||'')}" placeholder="https://…"/></div>
-        <div class="form-group"><label class="form-label">Code / GitHub URL</label>
-          <input id="f-code" value="${esc(d.codeUrl||'')}" placeholder="https://github.com/…"/></div>
-      </div>
-      <div class="form-group"><label class="form-label">Status</label>
-        <select id="f-status">
-          <option value="live" ${d.status==='live'?'selected':''}>🟢 Live</option>
-          <option value="wip" ${d.status==='wip'?'selected':''}>🟡 Work In Progress</option>
-        </select></div>
-    </div>`,
-  experience:(d={})=>`
-    <div class="fg">
-      <div class="form-group"><label class="form-label">Organization *</label>
-        <input id="f-org" value="${esc(d.org||'')}" placeholder="Company / Club / Institute"/></div>
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Role / Title</label>
-          <input id="f-role" value="${esc(d.role||'')}" placeholder="e.g. Graphics Designer"/></div>
-        <div class="form-group"><label class="form-label">Duration</label>
-          <input id="f-dur" value="${esc(d.duration||'')}" placeholder="2025 – Present"/></div>
-      </div>
-      <div class="form-group"><label class="form-label">Type</label>
-        <select id="f-type">
-          ${['Full-time','Part-time','Internship','Freelance','Club Role','Volunteer','Other'].map(t=>`<option value="${t}" ${d.type===t?'selected':''}>${t}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Description</label>
-        <textarea id="f-desc" placeholder="What did you do here?">${esc(d.desc||'')}</textarea></div>
-    </div>`,
-  study:(d={})=>`
-    <div class="fg">
-      <div class="form-group"><label class="form-label">Institution *</label>
-        <input id="f-inst" value="${esc(d.institution||'')}" placeholder="College / School name"/></div>
-      <div class="form-group"><label class="form-label">Degree / Level</label>
-        <input id="f-deg" value="${esc(d.degree||'')}" placeholder="e.g. B.E. Computer Science and Business Systems"/></div>
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Year</label>
-          <input id="f-year" value="${esc(d.year||'')}" placeholder="2024 – Present"/></div>
-        <div class="form-group"><label class="form-label">Grade / Percentage</label>
-          <input id="f-grade" value="${esc(d.grade||'')}" placeholder="8.32 CGPA / 85%"/></div>
-      </div>
-    </div>`,
-  techstack:(d={})=>`
-    <div class="fg">
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Skill Name *</label>
-          <input id="f-name" value="${esc(d.name||'')}" placeholder="e.g. JavaScript"/></div>
-        <div class="form-group"><label class="form-label">Category</label>
-          <select id="f-cat">
-            ${['Frontend','Backend','Database','Tools','Mobile','Design','DevOps','Other'].map(c=>`<option value="${c}" ${d.category===c?'selected':''}>${c}</option>`).join('')}
-          </select></div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Proficiency — <span id="pv">${d.proficiency||70}</span>%</label>
-        <input type="range" id="f-prof" min="5" max="100" value="${d.proficiency||70}" oninput="_id('pv').textContent=this.value"/>
-      </div>
-    </div>`,
-  problemsolving:(d={})=>`
-    <div class="fg">
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Platform *</label>
-          <input id="f-plat" value="${esc(d.platform||'')}" placeholder="LeetCode / Codeforces…"/></div>
-        <div class="form-group"><label class="form-label">Username</label>
-          <input id="f-uname" value="${esc(d.username||'')}" placeholder="your-handle"/></div>
-      </div>
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Problems Solved</label>
-          <input id="f-solved" value="${esc(d.solved||'')}" placeholder="35+"/></div>
-        <div class="form-group"><label class="form-label">Profile URL</label>
-          <input id="f-url" value="${esc(d.url||'')}" placeholder="https://leetcode.com/…"/></div>
-      </div>
-    </div>`,
-  wip:(d={})=>`
-    <div class="fg">
-      <div class="form-group"><label class="form-label">Project Title *</label>
-        <input id="f-title" value="${esc(d.title||'')}" placeholder="e.g. AI/ML Project"/></div>
-      <div class="form-group"><label class="form-label">Description</label>
-        <textarea id="f-desc" placeholder="What are you building?">${esc(d.desc||'')}</textarea></div>
-      <div class="fg-row">
-        <div class="form-group">
-          <label class="form-label">Progress — <span id="pgv">${d.progress||10}</span>%</label>
-          <input type="range" id="f-prog" min="0" max="100" value="${d.progress||10}" oninput="_id('pgv').textContent=this.value"/>
-        </div>
-        <div class="form-group"><label class="form-label">ETA</label>
-          <input id="f-eta" value="${esc(d.eta||'')}" placeholder="Q3 2025"/></div>
-      </div>
-    </div>`,
-  blog:(d={})=>`
-    <div class="fg">
-      <div class="form-group"><label class="form-label">Post Title *</label>
-        <input id="f-title" value="${esc(d.title||'')}" placeholder="Your blog post title"/></div>
-      <div class="fg-row">
-        <div class="form-group"><label class="form-label">Tags (comma separated)</label>
-          <input id="f-tags" value="${esc(d.tags||'')}" placeholder="web, dev, learning"/></div>
-        <div class="form-group"><label class="form-label">Status</label>
-          <select id="f-status">
-            <option value="draft" ${d.status==='draft'||!d.status?'selected':''}>📝 Draft</option>
-            <option value="published" ${d.status==='published'?'selected':''}>🟢 Published (Live)</option>
-          </select></div>
-      </div>
-      <div class="form-group"><label class="form-label">Content</label>
-        <textarea id="f-content" style="min-height:180px" placeholder="Write your blog post here… (supports plain text)">${esc(d.content||'')}</textarea></div>
-    </div>`,
-};
-
-const COLLECTORS={
-  works:()=>({title:gv('f-title'),desc:gv('f-desc'),tech:gv('f-tech'),liveUrl:gv('f-live'),codeUrl:gv('f-code'),status:gv('f-status')}),
-  experience:()=>({org:gv('f-org'),role:gv('f-role'),duration:gv('f-dur'),type:gv('f-type'),desc:gv('f-desc')}),
-  study:()=>({institution:gv('f-inst'),degree:gv('f-deg'),year:gv('f-year'),grade:gv('f-grade')}),
-  techstack:()=>({name:gv('f-name'),category:gv('f-cat'),proficiency:parseInt(gv('f-prof')||70)}),
-  problemsolving:()=>({platform:gv('f-plat'),username:gv('f-uname'),solved:gv('f-solved'),url:gv('f-url')}),
-  wip:()=>({title:gv('f-title'),desc:gv('f-desc'),progress:parseInt(gv('f-prog')||0),eta:gv('f-eta')}),
-  blog:()=>({title:gv('f-title'),tags:gv('f-tags'),status:gv('f-status'),content:gv('f-content')}),
-};
-
-const REQUIRED={
-  works:'title',experience:'org',study:'institution',
-  techstack:'name',problemsolving:'platform',wip:'title',blog:'title'
-};
-
-function openModal(section,id=null){
-  _mSection=section;_editId=id;
-  const existing=id?DB.get(section).find(x=>x.id===id):null;
-  const sectionLabels={works:'Project',experience:'Experience',study:'Education',
-    techstack:'Skill',problemsolving:'Platform',wip:'WIP Project',blog:'Blog Post'};
-  _id('modal-title').textContent=(id?'Edit ':'New ')+( sectionLabels[section]||section);
-  _id('modal-body').innerHTML=FORMS[section](existing||{});
-  _id('modal-ov').classList.add('open');
-  // Focus first input
-  setTimeout(()=>{const fi=_id('modal-body').querySelector('input,textarea');if(fi)fi.focus();},80);
-}
-function closeModal(){_id('modal-ov').classList.remove('open');}
-function saveModal(){
-  const data=COLLECTORS[_mSection]();
-  const reqKey=REQUIRED[_mSection];
-  if(reqKey && !data[reqKey]?.trim()){
-    toast('Please fill in the required field','e');
-    const el=document.getElementById('f-'+reqKey)||document.getElementById('f-title')||document.getElementById('f-name')||document.getElementById('f-org')||document.getElementById('f-plat')||document.getElementById('f-inst');
-    if(el){el.style.borderColor='var(--red)';el.focus();setTimeout(()=>el.style.borderColor='',2000);}
-    return;
-  }
-  if(_editId){DB.update(_mSection,_editId,data);toast('Updated ✓','s');}
-  else{DB.add(_mSection,data);toast('Added ✓','s');}
-  closeModal();
-  renderSection(_mSection);
-  renderDash();
-}
-
-/* ════════════════════════════════════════
-   DELETE
-════════════════════════════════════════ */
-let _dSection='',_dId='';
-function askDel(s,id){_dSection=s;_dId=id;_id('confirm-ov').classList.add('open');}
-function closeConfirm(){_id('confirm-ov').classList.remove('open');}
-function confirmDel(){
-  DB.del(_dSection,_dId);closeConfirm();
-  renderSection(_dSection);renderDash();toast('Deleted','w');
-}
-
-/* ════════════════════════════════════════
-   SEARCH FILTER
-════════════════════════════════════════ */
-function filterTbl(tbId,q){
-  document.querySelectorAll(`#${tbId} tr[data-s]`).forEach(r=>{
-    r.style.display=r.dataset.s.includes(q.toLowerCase())?'':'none';
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes("'" + page + "'")) n.classList.add('active');
   });
+  const t = pageTitles[page] || [page, ''];
+  document.getElementById('headerTitle').innerHTML = t[0] + ' <span>' + t[1] + '</span>';
+  renderPage(page);
+  closeSidebar();
 }
 
-/* ════════════════════════════════════════
-   EXPORT / IMPORT
-════════════════════════════════════════ */
-const DATA_KEYS=['works','experience','study','techstack','problemsolving','wip','blog','contact'];
-function exportAll(){
-  const data={_version:1,_exported:new Date().toISOString()};
-  DATA_KEYS.forEach(k=>data[k]=DB.get(k));
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`yuvaraj-admin-backup-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();URL.revokeObjectURL(a.href);
-  toast('Backup downloaded!','s');
-}
-function importBackup(){_id('import-file').click();}
-function handleImport(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try{
-      const data=JSON.parse(ev.target.result);
-      DATA_KEYS.forEach(k=>{if(data[k]&&Array.isArray(data[k]))DB.set(k,data[k]);});
-      renderSection(getCurrentSection());
-      renderDash();
-      toast('Backup imported successfully!','s');
-    }catch{toast('Invalid backup file','e');}
-    e.target.value='';
+function renderPage(page) {
+  const renders = {
+    dashboard: renderDashboard,
+    works: renderWorks,
+    experience: renderExperience,
+    study: renderStudy,
+    problemsolving: renderPS,
+    techstack: renderTechStack,
+    underdevelopment: renderWip,
+    blog: renderBlog,
+    contact: renderContact,
+    settings: renderSettings
   };
-  r.readAsText(file);
-}
-function clearAllData(){
-  if(!confirm('Clear ALL admin data? This cannot be undone.'))return;
-  DATA_KEYS.forEach(k=>localStorage.removeItem(STORAGE_PREFIX+k));
-  renderSection(getCurrentSection());renderDash();toast('All data cleared','w');
-}
-function getCurrentSection(){
-  const a=document.querySelector('.nav-item.active');
-  return a?a.dataset.s:'dashboard';
+  if (renders[page]) renders[page]();
 }
 
-/* ════════════════════════════════════════
-   TOAST
-════════════════════════════════════════ */
-function toast(msg,type='s'){
-  const icons={s:'✓',e:'✕',w:'⚠'};
-  const el=document.createElement('div');
-  el.className=`toast ${type}`;
-  el.innerHTML=`<span class="ti">${icons[type]}</span><span>${msg}</span>`;
-  _id('toasts').appendChild(el);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),220);},2800);
+// ─── SIDEBAR MOBILE ───────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
 }
 
-/* ════════════════════════════════════════
-   HELPERS
-════════════════════════════════════════ */
-function _id(id){return document.getElementById(id);}
-function gv(id){const el=_id(id);return el?el.value:'';}
-function esc(s){
-  if(s==null)return'';
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-}
-function fmtDate(iso){
-  if(!iso)return'—';
-  try{
-    const d=new Date(iso);
-    if(isNaN(d))return'—';
-    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+' '+
-      d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
-  }catch{return'—';}
-}
-function emptyRow(cols){
-  return`<tr><td colspan="${cols}"><div class="empty-state"><div class="es-icon">📭</div><p class="es-text">Nothing here yet. Add your first entry!</p></div></td></tr>`;
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
 }
 
-/* ════════════════════════════════════════
-   CLOSE OVERLAYS ON OUTSIDE CLICK
-════════════════════════════════════════ */
-_id('modal-ov').addEventListener('click',e=>{if(e.target===_id('modal-ov'))closeModal();});
-_id('confirm-ov').addEventListener('click',e=>{if(e.target===_id('confirm-ov'))closeConfirm();});
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeModal();closeConfirm();closeSidebar();}
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
 });
 
-/* ════════════════════════════════════════
-   LISTEN FOR CONTACT MESSAGES
-   from portfolio page (same domain)
-════════════════════════════════════════ */
-window.addEventListener('storage',e=>{
-  if(e.key===STORAGE_PREFIX+'contact'){
-    // Re-render contact if on that page
-    if(document.getElementById('page-contact').classList.contains('active'))renderContact();
-    renderDash();
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const tc = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = (type === 'success' ? '✅' : '❌') + ' ' + msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── STATS ───────────────────────────────────────────────────────────────────
+function updateStats() {
+  const skillCount = Object.values(data.tech).reduce((a, b) => a + b.length, 0);
+  document.getElementById('statProjects').textContent = data.works.length;
+  document.getElementById('statExp').textContent = data.experience.length;
+  document.getElementById('statBlogs').textContent = data.blog.filter(b => b.status === 'published').length;
+  document.getElementById('statSkills').textContent = skillCount;
+  const drafts = data.blog.filter(b => b.status === 'draft').length;
+  document.getElementById('draftBadge').textContent = drafts;
+  document.getElementById('draftBadge').style.display = drafts > 0 ? '' : 'none';
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() { updateStats(); }
+
+// ─── WORKS ───────────────────────────────────────────────────────────────────
+function renderWorks(filter = '') {
+  const list = document.getElementById('worksList');
+  let items = data.works.filter(w => !filter || w.title.toLowerCase().includes(filter.toLowerCase()));
+  if (!items.length) { list.innerHTML = emptyState('🚀', 'No projects yet. Add your first project!'); return; }
+  list.innerHTML = items.map(w => `
+    <div class="item-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="item-card-title">${w.title}</div>
+        <div><span class="status-dot ${w.status}"></span></div>
+      </div>
+      <div class="item-card-meta">${w.year || ''} · ${w.category}</div>
+      <div class="item-card-desc">${w.desc || 'No description.'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+        ${(w.tech || '').split(',').filter(t=>t.trim()).map(t => `<span class="tag">${t.trim()}</span>`).join('')}
+      </div>
+      <div class="item-card-actions">
+        ${w.live ? `<a href="${w.live}" target="_blank" class="btn btn-ghost btn-sm">🔗 Live</a>` : ''}
+        ${w.github ? `<a href="${w.github}" target="_blank" class="btn btn-ghost btn-sm">⭐ GitHub</a>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="editWork('${w.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('works','${w.id}','renderWorks')">🗑</button>
+      </div>
+      ${w.featured ? '<div style="position:absolute;top:14px;right:14px;"><span class="tag orange">★ Featured</span></div>' : ''}
+    </div>
+  `).join('');
+}
+
+function filterItems(section, val) {
+  if (section === 'works') renderWorks(val);
+}
+
+function saveWork() {
+  const id = document.getElementById('worksEditId').value || uid();
+  const item = {
+    id, title: document.getElementById('worksTitle').value.trim(),
+    category: document.getElementById('worksCategory').value,
+    status: document.getElementById('worksStatus').value,
+    desc: document.getElementById('worksDesc').value.trim(),
+    tech: document.getElementById('worksTech').value.trim(),
+    live: document.getElementById('worksLive').value.trim(),
+    github: document.getElementById('worksGithub').value.trim(),
+    year: document.getElementById('worksYear').value.trim(),
+    thumb: document.getElementById('worksThumb').value.trim(),
+    featured: document.getElementById('worksFeaturedToggle').classList.contains('on'),
+    createdAt: new Date().toISOString()
+  };
+  if (!item.title) { toast('Title is required', 'error'); return; }
+  const idx = data.works.findIndex(w => w.id === id);
+  if (idx >= 0) data.works[idx] = item;
+  else data.works.unshift(item);
+  save(); closeModal('worksModal'); clearWorkForm(); renderWorks();
+  toast('Project saved successfully!');
+}
+
+function editWork(id) {
+  const w = data.works.find(x => x.id === id);
+  if (!w) return;
+  document.getElementById('worksEditId').value = w.id;
+  document.getElementById('worksTitle').value = w.title;
+  document.getElementById('worksCategory').value = w.category;
+  document.getElementById('worksStatus').value = w.status;
+  document.getElementById('worksDesc').value = w.desc || '';
+  document.getElementById('worksTech').value = w.tech || '';
+  document.getElementById('worksLive').value = w.live || '';
+  document.getElementById('worksGithub').value = w.github || '';
+  document.getElementById('worksYear').value = w.year || '';
+  document.getElementById('worksThumb').value = w.thumb || '';
+  if (w.featured) document.getElementById('worksFeaturedToggle').classList.add('on');
+  else document.getElementById('worksFeaturedToggle').classList.remove('on');
+  document.getElementById('worksModalTitle').textContent = 'Edit Project';
+  openModal('worksModal');
+}
+
+function clearWorkForm() {
+  ['worksEditId','worksTitle','worksDesc','worksTech','worksLive','worksGithub','worksYear','worksThumb'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('worksModalTitle').textContent = 'Add Project';
+  document.getElementById('worksFeaturedToggle').classList.remove('on');
+}
+
+// ─── EXPERIENCE ───────────────────────────────────────────────────────────────
+function renderExperience() {
+  const list = document.getElementById('expList');
+  if (!data.experience.length) { list.innerHTML = emptyState('💼', 'No experience added yet.'); return; }
+  list.innerHTML = data.experience.map(e => `
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="item-card" style="margin-bottom:0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+          <div>
+            <div class="item-card-title">${e.role}</div>
+            <div class="item-card-meta">${e.company} · ${e.location || ''}</div>
+          </div>
+          <span class="tag ${e.current ? '' : 'purple'}">${e.start} – ${e.current ? 'Present' : e.end}</span>
+        </div>
+        <div class="item-card-desc" style="margin-top:8px;">${e.desc || ''}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+          ${(e.skills||'').split(',').filter(s=>s.trim()).map(s=>`<span class="tag blue">${s.trim()}</span>`).join('')}
+        </div>
+        <div class="item-card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editExp('${e.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('experience','${e.id}','renderExperience')">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveExp() {
+  const id = document.getElementById('expEditId').value || uid();
+  const item = {
+    id, role: document.getElementById('expRole').value.trim(),
+    company: document.getElementById('expCompany').value.trim(),
+    start: document.getElementById('expStart').value.trim(),
+    end: document.getElementById('expEnd').value.trim(),
+    location: document.getElementById('expLocation').value.trim(),
+    desc: document.getElementById('expDesc').value.trim(),
+    skills: document.getElementById('expSkills').value.trim(),
+    current: document.getElementById('expCurrentToggle').classList.contains('on')
+  };
+  if (!item.role || !item.company) { toast('Role and Company required', 'error'); return; }
+  const idx = data.experience.findIndex(e => e.id === id);
+  if (idx >= 0) data.experience[idx] = item;
+  else data.experience.unshift(item);
+  save(); closeModal('expModal');
+  ['expEditId','expRole','expCompany','expStart','expEnd','expLocation','expDesc','expSkills'].forEach(i=>document.getElementById(i).value='');
+  renderExperience(); toast('Experience saved!');
+}
+
+function editExp(id) {
+  const e = data.experience.find(x => x.id === id); if (!e) return;
+  document.getElementById('expEditId').value = e.id;
+  document.getElementById('expRole').value = e.role;
+  document.getElementById('expCompany').value = e.company;
+  document.getElementById('expStart').value = e.start || '';
+  document.getElementById('expEnd').value = e.end || '';
+  document.getElementById('expLocation').value = e.location || '';
+  document.getElementById('expDesc').value = e.desc || '';
+  document.getElementById('expSkills').value = e.skills || '';
+  e.current ? document.getElementById('expCurrentToggle').classList.add('on') : document.getElementById('expCurrentToggle').classList.remove('on');
+  openModal('expModal');
+}
+
+// ─── STUDY ───────────────────────────────────────────────────────────────────
+function renderStudy() {
+  const list = document.getElementById('studyList');
+  if (!data.study.length) { list.innerHTML = emptyState('🎓', 'No education entries yet.'); return; }
+  list.innerHTML = data.study.map(s => `
+    <div class="item-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="item-card-title">${s.title}</div>
+        <span class="tag purple">${s.type}</span>
+      </div>
+      <div class="item-card-meta">${s.institution} · ${s.year || ''}</div>
+      ${s.desc ? `<div class="item-card-desc">${s.desc}</div>` : ''}
+      ${s.score ? `<div style="margin-bottom:10px;"><span class="tag orange">🏆 ${s.score}</span></div>` : ''}
+      <div class="item-card-actions">
+        ${s.link ? `<a href="${s.link}" target="_blank" class="btn btn-ghost btn-sm">🔗 Credential</a>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="editStudy('${s.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('study','${s.id}','renderStudy')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveStudy() {
+  const id = document.getElementById('studyEditId').value || uid();
+  const item = {
+    id, title: document.getElementById('studyTitle').value.trim(),
+    institution: document.getElementById('studyInstitution').value.trim(),
+    type: document.getElementById('studyType').value,
+    year: document.getElementById('studyYear').value.trim(),
+    desc: document.getElementById('studyDesc').value.trim(),
+    link: document.getElementById('studyLink').value.trim(),
+    score: document.getElementById('studyScore').value.trim()
+  };
+  if (!item.title) { toast('Title is required', 'error'); return; }
+  const idx = data.study.findIndex(s => s.id === id);
+  if (idx >= 0) data.study[idx] = item;
+  else data.study.unshift(item);
+  save(); closeModal('studyModal');
+  ['studyEditId','studyTitle','studyInstitution','studyYear','studyDesc','studyLink','studyScore'].forEach(i=>document.getElementById(i).value='');
+  renderStudy(); toast('Study entry saved!');
+}
+
+function editStudy(id) {
+  const s = data.study.find(x => x.id === id); if (!s) return;
+  document.getElementById('studyEditId').value = s.id;
+  document.getElementById('studyTitle').value = s.title;
+  document.getElementById('studyInstitution').value = s.institution;
+  document.getElementById('studyType').value = s.type;
+  document.getElementById('studyYear').value = s.year || '';
+  document.getElementById('studyDesc').value = s.desc || '';
+  document.getElementById('studyLink').value = s.link || '';
+  document.getElementById('studyScore').value = s.score || '';
+  openModal('studyModal');
+}
+
+// ─── PROBLEM SOLVING ─────────────────────────────────────────────────────────
+function renderPS() {
+  const list = document.getElementById('psList');
+  if (!data.ps.length) { list.innerHTML = emptyState('🧩', 'No platforms added yet.'); return; }
+  list.innerHTML = data.ps.map(p => `
+    <div class="ps-card">
+      <div class="ps-platform">${p.platform}</div>
+      <div class="ps-count">${p.solved || '—'}</div>
+      <div class="ps-label">Problems Solved</div>
+      ${p.rank ? `<div style="margin-top:8px;"><span class="tag orange">${p.rank}</span></div>` : ''}
+      ${p.badge ? `<div style="margin-top:6px;font-size:11px;color:var(--muted);">${p.badge}</div>` : ''}
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+        ${p.url ? `<a href="${p.url}" target="_blank" class="btn btn-ghost btn-sm">🔗 Profile</a>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="editPS('${p.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('ps','${p.id}','renderPS')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function savePS() {
+  const id = document.getElementById('psEditId').value || uid();
+  const item = {
+    id, platform: document.getElementById('psPlatform').value.trim(),
+    solved: document.getElementById('psSolved').value.trim(),
+    rank: document.getElementById('psRank').value.trim(),
+    url: document.getElementById('psUrl').value.trim(),
+    badge: document.getElementById('psBadge').value.trim()
+  };
+  if (!item.platform) { toast('Platform name required', 'error'); return; }
+  const idx = data.ps.findIndex(p => p.id === id);
+  if (idx >= 0) data.ps[idx] = item;
+  else data.ps.push(item);
+  save(); closeModal('psModal');
+  ['psEditId','psPlatform','psSolved','psRank','psUrl','psBadge'].forEach(i=>document.getElementById(i).value='');
+  renderPS(); toast('Platform saved!');
+}
+
+function editPS(id) {
+  const p = data.ps.find(x => x.id === id); if (!p) return;
+  document.getElementById('psEditId').value = p.id;
+  document.getElementById('psPlatform').value = p.platform;
+  document.getElementById('psSolved').value = p.solved || '';
+  document.getElementById('psRank').value = p.rank || '';
+  document.getElementById('psUrl').value = p.url || '';
+  document.getElementById('psBadge').value = p.badge || '';
+  openModal('psModal');
+}
+
+// ─── TECH STACK ───────────────────────────────────────────────────────────────
+const techCats = {
+  backend: { label: 'Backend Engineering', icon: '🖥️' },
+  frontend: { label: 'Front End', icon: '🎨' },
+  database: { label: 'Database', icon: '🗄️' },
+  testing: { label: 'Testing & Security', icon: '🛡️' },
+  cloud: { label: 'Cloud', icon: '☁️' },
+  tools: { label: 'Tools I Use Everyday', icon: '🔧' }
+};
+
+function renderTechStack() {
+  const container = document.getElementById('techStackList');
+  container.innerHTML = Object.entries(techCats).map(([key, cat]) => {
+    const skills = data.tech[key] || [];
+    return `
+      <div class="tech-category">
+        <div class="tech-category-header">
+          <div class="tech-category-title">${cat.icon} ${cat.label} <span style="font-size:11px;color:var(--muted);font-weight:400;">(${skills.length})</span></div>
+          <button class="btn btn-ghost btn-sm" onclick="openTechModal('${key}')">+ Add</button>
+        </div>
+        <div class="tech-pills">
+          ${skills.length ? skills.map(s => `
+            <div class="tech-pill">
+              ${s.icon ? s.icon + ' ' : ''}${s.name}
+              <span class="tag" style="font-size:9px;padding:1px 6px;">${s.level}</span>
+              <span class="remove-btn" onclick="removeTech('${key}','${s.id}')">×</span>
+            </div>
+          `).join('') : `<span style="font-size:12px;color:var(--muted);">No skills added yet</span>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openTechModal(cat) {
+  document.getElementById('techCategory').value = cat;
+  openModal('techModal');
+}
+
+function saveTech() {
+  const cat = document.getElementById('techCategory').value;
+  const item = {
+    id: uid(),
+    name: document.getElementById('techName').value.trim(),
+    level: document.getElementById('techLevel').value,
+    icon: document.getElementById('techIcon').value.trim()
+  };
+  if (!item.name) { toast('Skill name required', 'error'); return; }
+  if (!data.tech[cat]) data.tech[cat] = [];
+  data.tech[cat].push(item);
+  save(); closeModal('techModal');
+  ['techName','techIcon'].forEach(i=>document.getElementById(i).value='');
+  renderTechStack(); toast('Skill added!');
+}
+
+function removeTech(cat, id) {
+  data.tech[cat] = data.tech[cat].filter(s => s.id !== id);
+  save(); renderTechStack(); toast('Skill removed');
+}
+
+// ─── WIP ─────────────────────────────────────────────────────────────────────
+function renderWip() {
+  const list = document.getElementById('wipList');
+  if (!data.wip.length) { list.innerHTML = emptyState('🔧', 'No WIP projects yet.'); return; }
+  list.innerHTML = data.wip.map(w => `
+    <div class="item-card">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+        <div class="item-card-title">${w.name}</div>
+        <span class="tag orange">WIP</span>
+      </div>
+      ${w.eta ? `<div class="item-card-meta">ETA: ${w.eta}</div>` : ''}
+      <div class="item-card-desc">${w.desc || ''}</div>
+      ${w.progress ? `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:5px;">
+            <span>Progress</span><span>${w.progress}%</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;">
+            <div style="background:linear-gradient(90deg,var(--accent),var(--accent2));width:${w.progress}%;height:100%;border-radius:4px;transition:width 0.6s ease;"></div>
+          </div>
+        </div>` : ''}
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">
+        ${(w.tech||'').split(',').filter(t=>t.trim()).map(t=>`<span class="tag blue">${t.trim()}</span>`).join('')}
+      </div>
+      <div class="item-card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editWip('${w.id}')">✏️ Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('wip','${w.id}','renderWip')">🗑</button>
+        <span class="tag ${w.visible ? '' : 'red'}" style="margin-left:auto;">${w.visible ? '👁 Visible' : '🚫 Hidden'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveWip() {
+  const id = document.getElementById('wipEditId').value || uid();
+  const item = {
+    id, name: document.getElementById('wipName').value.trim(),
+    desc: document.getElementById('wipDesc').value.trim(),
+    progress: document.getElementById('wipProgress').value,
+    eta: document.getElementById('wipEta').value.trim(),
+    tech: document.getElementById('wipTech').value.trim(),
+    visible: document.getElementById('wipVisibleToggle').classList.contains('on')
+  };
+  if (!item.name) { toast('Project name required', 'error'); return; }
+  const idx = data.wip.findIndex(w => w.id === id);
+  if (idx >= 0) data.wip[idx] = item;
+  else data.wip.unshift(item);
+  save(); closeModal('wipModal');
+  ['wipEditId','wipName','wipDesc','wipProgress','wipEta','wipTech'].forEach(i=>document.getElementById(i).value='');
+  renderWip(); toast('WIP project saved!');
+}
+
+function editWip(id) {
+  const w = data.wip.find(x => x.id === id); if (!w) return;
+  document.getElementById('wipEditId').value = w.id;
+  document.getElementById('wipName').value = w.name;
+  document.getElementById('wipDesc').value = w.desc || '';
+  document.getElementById('wipProgress').value = w.progress || '';
+  document.getElementById('wipEta').value = w.eta || '';
+  document.getElementById('wipTech').value = w.tech || '';
+  w.visible ? document.getElementById('wipVisibleToggle').classList.add('on') : document.getElementById('wipVisibleToggle').classList.remove('on');
+  openModal('wipModal');
+}
+
+// ─── BLOG ────────────────────────────────────────────────────────────────────
+const catColors = { engineering:'', qa:'purple', content:'orange', career:'blue' };
+
+function renderBlog(catFilter = 'all') {
+  const list = document.getElementById('blogList');
+  let items = [...data.blog];
+  if (catFilter !== 'all') items = items.filter(b => b.category === catFilter);
+  items.sort((a, b) => new Date(b.publishedAt || b.createdAt) - new Date(a.publishedAt || a.createdAt));
+  if (!items.length) { list.innerHTML = emptyState('📝', 'No blog posts yet.'); return; }
+  list.innerHTML = items.map((b, i) => `
+    <div class="blog-item">
+      <div class="blog-item-num">${String(i + 1).padStart(2, '0')}</div>
+      <div class="blog-item-info">
+        <div class="blog-item-title">${b.title}</div>
+        <div class="blog-item-meta">
+          <span class="tag ${catColors[b.category] || ''}">${b.category}</span>
+          <span>${b.readTime ? b.readTime + ' min read' : ''}</span>
+          <span>${b.publishedAt ? new Date(b.publishedAt).toLocaleDateString() : 'Draft'}</span>
+          <span class="status-dot ${b.status === 'published' ? 'live' : 'draft'}"></span>
+          <span style="color:${b.status==='published'?'var(--accent)':'var(--muted)'};">${b.status}</span>
+        </div>
+      </div>
+      <div class="blog-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editBlog('${b.id}')">✏️</button>
+        ${b.status === 'draft' ? `<button class="btn btn-primary btn-sm" onclick="quickPublish('${b.id}')">▶ Publish</button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('blog','${b.id}','renderBlog')">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterBlog(cat) { renderBlog(cat); }
+
+function saveBlog(status) {
+  const id = document.getElementById('blogEditId').value || uid();
+  const title = document.getElementById('blogTitle').value.trim();
+  const item = {
+    id, title, category: document.getElementById('blogCategory').value,
+    status, slug: document.getElementById('blogSlug').value.trim() || slugify(title),
+    excerpt: document.getElementById('blogExcerpt').value.trim(),
+    content: document.getElementById('blogContent').value.trim(),
+    cover: document.getElementById('blogCover').value.trim(),
+    readTime: document.getElementById('blogReadTime').value.trim(),
+    tags: document.getElementById('blogTags').value.trim(),
+    createdAt: new Date().toISOString(),
+    publishedAt: status === 'published' ? new Date().toISOString() : null
+  };
+  if (!item.title) { toast('Title required', 'error'); return; }
+  const idx = data.blog.findIndex(b => b.id === id);
+  if (idx >= 0) {
+    data.blog[idx] = { ...data.blog[idx], ...item };
+    if (status === 'published' && !data.blog[idx].publishedAt) data.blog[idx].publishedAt = new Date().toISOString();
+  } else data.blog.unshift(item);
+  save(); closeModal('blogModal');
+  ['blogEditId','blogTitle','blogSlug','blogExcerpt','blogContent','blogCover','blogReadTime','blogTags'].forEach(i=>document.getElementById(i).value='');
+  renderBlog(); toast(status === 'published' ? 'Blog post published!' : 'Draft saved!');
+}
+
+function publishBlog() { saveBlog('published'); }
+function saveBlogDraft() { saveBlog('draft'); }
+
+function quickPublish(id) {
+  const b = data.blog.find(x => x.id === id); if (!b) return;
+  b.status = 'published'; b.publishedAt = new Date().toISOString();
+  save(); renderBlog(); toast('Post published live! 🚀');
+}
+
+function editBlog(id) {
+  const b = data.blog.find(x => x.id === id); if (!b) return;
+  document.getElementById('blogEditId').value = b.id;
+  document.getElementById('blogTitle').value = b.title;
+  document.getElementById('blogCategory').value = b.category;
+  document.getElementById('blogStatus').value = b.status;
+  document.getElementById('blogSlug').value = b.slug || '';
+  document.getElementById('blogExcerpt').value = b.excerpt || '';
+  document.getElementById('blogContent').value = b.content || '';
+  document.getElementById('blogCover').value = b.cover || '';
+  document.getElementById('blogReadTime').value = b.readTime || '';
+  document.getElementById('blogTags').value = b.tags || '';
+  document.getElementById('blogModalTitle').textContent = 'Edit Blog Post';
+  openModal('blogModal');
+}
+
+function slugify(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+// Auto-slug from title
+document.getElementById('blogTitle').addEventListener('input', function() {
+  const slug = document.getElementById('blogSlug');
+  if (!slug.value) slug.placeholder = slugify(this.value) || 'auto-generated-from-title';
+});
+
+// ─── CONTACT ─────────────────────────────────────────────────────────────────
+function renderContact() {
+  const list = document.getElementById('contactList');
+  if (!data.contact.length) { list.innerHTML = emptyState('📡', 'No contact links added yet.'); return; }
+  list.innerHTML = data.contact.map(c => `
+    <div class="contact-item">
+      <div class="contact-icon">${c.icon || '🔗'}</div>
+      <div class="contact-info">
+        <div class="contact-label">${c.platform} ${c.primary ? '· Primary' : ''}</div>
+        <div class="contact-value">${c.value}</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          ${c.url ? `<a href="${c.url}" target="_blank" class="btn btn-ghost btn-sm">Open</a>` : ''}
+          <button class="btn btn-ghost btn-sm" onclick="editContact('${c.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('contact','${c.id}','renderContact')">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveContact() {
+  const id = document.getElementById('contactEditId').value || uid();
+  const item = {
+    id, platform: document.getElementById('contactPlatform').value.trim(),
+    value: document.getElementById('contactValue').value.trim(),
+    url: document.getElementById('contactUrl').value.trim(),
+    icon: document.getElementById('contactIcon').value.trim(),
+    primary: document.getElementById('contactPrimaryToggle').classList.contains('on')
+  };
+  if (!item.platform || !item.value) { toast('Platform and value required', 'error'); return; }
+  const idx = data.contact.findIndex(c => c.id === id);
+  if (idx >= 0) data.contact[idx] = item;
+  else data.contact.push(item);
+  save(); closeModal('contactModal');
+  ['contactEditId','contactPlatform','contactValue','contactUrl','contactIcon'].forEach(i=>document.getElementById(i).value='');
+  renderContact(); toast('Contact saved!');
+}
+
+function editContact(id) {
+  const c = data.contact.find(x => x.id === id); if (!c) return;
+  document.getElementById('contactEditId').value = c.id;
+  document.getElementById('contactPlatform').value = c.platform;
+  document.getElementById('contactValue').value = c.value;
+  document.getElementById('contactUrl').value = c.url || '';
+  document.getElementById('contactIcon').value = c.icon || '';
+  c.primary ? document.getElementById('contactPrimaryToggle').classList.add('on') : document.getElementById('contactPrimaryToggle').classList.remove('on');
+  openModal('contactModal');
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function renderSettings() {
+  document.getElementById('settingName').value = data.settings.name || '';
+  document.getElementById('settingRole').value = data.settings.role || '';
+  document.getElementById('settingUrl').value = data.settings.url || '';
+  document.getElementById('settingApi').value = data.settings.api || '';
+}
+
+function saveSettings() {
+  data.settings.name = document.getElementById('settingName').value.trim();
+  data.settings.role = document.getElementById('settingRole').value.trim();
+  data.settings.url = document.getElementById('settingUrl').value.trim();
+  data.settings.api = document.getElementById('settingApi').value.trim();
+  save(); updateSidebarProfile(); toast('Settings saved!');
+}
+
+function updateSidebarProfile() {
+  const name = document.getElementById('settingName').value || 'Your Name';
+  const role = document.getElementById('settingRole').value || 'Developer';
+  document.getElementById('sidebarName').textContent = name;
+  document.getElementById('sidebarRole').textContent = role;
+  const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+  document.getElementById('avatarInitials').textContent = initials;
+  document.getElementById('headerTitle').innerHTML = pageTitles[currentPage()][0] + ' <span>' + pageTitles[currentPage()][1] + '</span>';
+}
+
+function currentPage() {
+  const active = document.querySelector('.page.active');
+  return active ? active.id.replace('page-', '') : 'dashboard';
+}
+
+// ─── CLOUDFLARE SYNC ─────────────────────────────────────────────────────────
+async function syncToCloudflare() {
+  const api = data.settings.api;
+  if (!api) { toast('Set Cloudflare Worker API URL in Settings first', 'error'); return; }
+  toast('Syncing to Cloudflare D1…');
+  try {
+    const res = await fetch(api + '/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      const now = new Date().toLocaleTimeString();
+      document.getElementById('lastSyncTime').textContent = 'Last sync: ' + now;
+      toast('Synced to Cloudflare D1! ☁️');
+    } else {
+      throw new Error('HTTP ' + res.status);
+    }
+  } catch (e) {
+    toast('Sync failed: ' + e.message + ' — Check API URL', 'error');
   }
-});
-
-/* ════════════════════════════════════════
-   INIT
-════════════════════════════════════════ */
-function initApp(){
-  seedDemo();
-  renderDash();
-  updateBadge();
 }
-if(sessionStorage.getItem('ypa_auth'))initApp();
+
+async function testConnection() {
+  const api = data.settings.api;
+  if (!api) { toast('Set API URL in settings first', 'error'); return; }
+  try {
+    const res = await fetch(api + '/health');
+    if (res.ok) toast('Connection successful! ✅');
+    else throw new Error('HTTP ' + res.status);
+  } catch (e) {
+    toast('Connection failed: ' + e.message, 'error');
+  }
+}
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function deleteItem(section, id, renderFn) {
+  if (!confirm('Delete this item?')) return;
+  if (section === 'works') data.works = data.works.filter(i => i.id !== id);
+  else if (section === 'experience') data.experience = data.experience.filter(i => i.id !== id);
+  else if (section === 'study') data.study = data.study.filter(i => i.id !== id);
+  else if (section === 'ps') data.ps = data.ps.filter(i => i.id !== id);
+  else if (section === 'wip') data.wip = data.wip.filter(i => i.id !== id);
+  else if (section === 'blog') data.blog = data.blog.filter(i => i.id !== id);
+  else if (section === 'contact') data.contact = data.contact.filter(i => i.id !== id);
+  save();
+  window[renderFn]();
+  toast('Deleted successfully');
+}
+
+function emptyState(icon, text) {
+  return `<div class="empty-state"><div class="empty-state-icon">${icon}</div><div class="empty-state-text">${text}</div></div>`;
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'portfolio-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); toast('Backup exported!');
+}
+
+function clearAllData() {
+  if (!confirm('This will clear ALL data. Are you sure?')) return;
+  localStorage.removeItem(DB_KEY);
+  data = JSON.parse(JSON.stringify(defaultData));
+  save(); toast('All data cleared');
+  navigate('dashboard');
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init() {
+  updateStats();
+  if (data.settings.name) {
+    document.getElementById('sidebarName').textContent = data.settings.name;
+    document.getElementById('sidebarRole').textContent = data.settings.role || 'Developer';
+    const initials = data.settings.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+    document.getElementById('avatarInitials').textContent = initials;
+  }
+}
+
+init();
 </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"806d77ffa58846488367511a4658cfcf","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-
