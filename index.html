@@ -1343,6 +1343,7 @@
 <script>
 // ─── STATE ───────────────────────────────────────────────────────────────────
 const DB_KEY = 'portfolioCMS_v1';
+const YPA = 'ypa_'; // prefix your portfolio's bridge reads from
 
 const defaultData = {
   settings: { name: 'Your Name', role: 'Full Stack Developer', url: '', api: '' },
@@ -1360,8 +1361,28 @@ const defaultData = {
 
 let data = JSON.parse(localStorage.getItem(DB_KEY) || 'null') || JSON.parse(JSON.stringify(defaultData));
 
+// ─── DUAL-WRITE: save to CMS blob AND ypa_* keys the portfolio reads ─────────
 function save() {
   localStorage.setItem(DB_KEY, JSON.stringify(data));
+
+  // Write each section as a flat array under ypa_* so portfolio bridge works
+  const sections = ['works','experience','study','ps','wip','blog','contact'];
+  sections.forEach(s => {
+    localStorage.setItem(YPA + s, JSON.stringify(data[s] || []));
+  });
+  // Tech is an object — write whole object
+  localStorage.setItem(YPA + 'tech', JSON.stringify(data.tech || {}));
+  // Settings
+  localStorage.setItem(YPA + 'settings', JSON.stringify(data.settings || {}));
+
+  // Fire storage events so any open portfolio tab picks up changes instantly
+  try {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: YPA + 'blog', storageArea: localStorage
+    }));
+    window.dispatchEvent(new Event('adminReady'));
+  } catch(e) {}
+
   updateStats();
 }
 
@@ -2009,24 +2030,37 @@ function currentPage() {
 
 // ─── CLOUDFLARE SYNC ─────────────────────────────────────────────────────────
 async function syncToCloudflare() {
-  const api = data.settings.api;
-  if (!api) { toast('Set Cloudflare Worker API URL in Settings first', 'error'); return; }
+  const api = (data.settings.api || '').replace(/\/+$/, '');
+  const yuvaApi = 'https://yuvarajpandian-api.yuvarajpandian243.workers.dev';
+  const targets = [];
+  if (api) targets.push(api);
+  // Always also sync to your live worker that portfolio already uses
+  if (!targets.includes(yuvaApi)) targets.push(yuvaApi);
+
   toast('Syncing to Cloudflare D1…');
-  try {
-    const res = await fetch(api + '/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (res.ok) {
-      const now = new Date().toLocaleTimeString();
-      document.getElementById('lastSyncTime').textContent = 'Last sync: ' + now;
-      toast('Synced to Cloudflare D1! ☁️');
-    } else {
-      throw new Error('HTTP ' + res.status);
+  let anyOk = false;
+  const errors = [];
+
+  for (const base of targets) {
+    try {
+      const res = await fetch(base + '/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (res.ok) anyOk = true;
+      else errors.push(base + ' → HTTP ' + res.status);
+    } catch (e) {
+      errors.push(base + ' → ' + e.message);
     }
-  } catch (e) {
-    toast('Sync failed: ' + e.message + ' — Check API URL', 'error');
+  }
+
+  if (anyOk) {
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('lastSyncTime').textContent = 'Last sync: ' + now;
+    toast('Synced to Cloudflare D1! ☁️ Portfolio is live.');
+  } else {
+    toast('Sync failed: ' + errors.join(' | '), 'error');
   }
 }
 
